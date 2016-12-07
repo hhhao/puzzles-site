@@ -1,0 +1,27 @@
+doctype html
+html
+  head
+    title Chess
+    link(rel="stylesheet", href="css/chessboard-0.3.0.css")
+  body
+    div(id="board1" style="width: 400px")
+    script(src="/socket.io/socket.io.js")
+    script(src="js/jquery-3.1.1.js")
+    script(src="js/chessboard-0.3.0.js")
+    script.
+      $(document).ready(function() {
+          var socket = io();
+
+          var onDrop = function(source, target, piece, newPos, oldPos, orientation) {
+              socket.emit('drop piece', {from: source, to: target})
+          }
+          var board1 = ChessBoard('board1', {
+              draggable: true,
+              position: 'start',
+              dropOffBoard: 'snapback',
+              onDrop: onDrop
+          });
+          socket.on('board', function(position) {
+              board1.position(position);
+          })
+      });

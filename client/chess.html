@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Hello world</title>
+        <link rel="stylesheet" href="css/chessboard-0.3.0.css" >
+    </head>
+
+    <body>
+        <div id="board1" style="width: 400px"></div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="js/jquery-3.1.1.js"></script>
+        <script src="js/chessboard-0.3.0.js"></script>
+        <script>
+         $(document).ready(function() {
+             var board1 = ChessBoard('board1', {
+                 draggable: true,
+                 dropOffBoard: 'trash'
+             });
+             $('#board1').ready(board1.start);
+             var socket = io();
+             socket.on('news', function (data) {
+                 console.log(data);
+                 socket.emit('my other event', { my: 'data' });
+             });
+         });
+        </script>
+    </body>
+</html>
