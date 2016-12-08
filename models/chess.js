@@ -4,7 +4,7 @@ function Chess() {
         this.board[i] = new Array(8).fill(null);
     }
     this.current_move_side = 'w';
-    this.history = [];
+    this.history = []; //[[from,to,:move_type,option,eat?],[from2,to2,:move_type2,option,eat?]...]
     this.hist_index = 0;
     this.pieces = Array(2);
     for (let c = 0; c <= 1; c++) {
@@ -27,6 +27,7 @@ function Chess() {
     this.dead_pieces = [[], []];
     this.promoted_pieces = [[], []];
     this.resign = false;
+    this.enpassantSqr = null;
 }
 
 Chess.prototype = {
@@ -73,6 +74,19 @@ Chess.prototype = {
             if (num > 0) row += num;
             fen += row + (y === 0 ? ' ' : '/');
         }
+        fen += this.current_move_side + ' ';
+        var canCastle = false;
+        if (board[4][0] && this.isCastlePath([4, 0], [6, 0])) {fen += 'K'; canCastle = true;}
+        if (board[4][0] && this.isCastlePath([4, 0], [2, 0])) {fen += 'Q'; canCastle = true;}
+        if (board[4][7] && this.isCastlePath([4, 7], [6, 7])) {fen += 'k'; canCastle = true;}
+        if (board[4][7] && this.isCastlePath([4, 7], [2, 7])) {fen += 'q'; canCastle = true;}
+        fen += canCastle ? ' ' : '- ';
+        fen += this.convPosToStr(this.enpassantSqr);
+
+        return fen;
+    },
+
+    fenToBoard: function(fen) {
 
     },
 
@@ -103,6 +117,7 @@ Chess.prototype = {
     },
 
     convPosToStr: function(pos) {
+        if (!pos) return '-';
         return String.fromCharCode('a'.charCodeAt()+pos[0]) + (pos[1]+1).toString();
     },
 
@@ -243,7 +258,7 @@ Chess.prototype = {
             this.posSwitch([0, y], [3, y]);
             this.board[3][y].moves++;
         } else if (dest[0] === 6) {
-            this._posSwitch([7, y], [5, y]);
+            this.posSwitch([7, y], [5, y]);
             this.board[5][y].moves++;
         }
     },
@@ -261,16 +276,16 @@ Chess.prototype = {
     },
 
     isLocUnderAttack: function(loc, color) {
-        i = this.colorToIndex(this.oppositeColor(color));
-        for (let k = 0, n = this.pieces.length; k < n; k++) {
-            var p = this.pieces[k];
+        var i = this.colorToIndex(this.oppositeColor(color));
+        for (let k = 0, n = this.pieces[i].length; k < n; k++) {
+            var p = this.pieces[i][k];
             if (p.alive && this.isLegalMove(p.sign, p.loc, loc)) return true;
         }
         return false;
     },
 
     isInCheck: function(color) {
-        if (this.isLocUnderAttack(this.pieces[this.colorToIndex(color)].loc, color)) {
+        if (this.isLocUnderAttack(this.pieces[this.colorToIndex(color)][4].loc, color)) {
             return true;
         } else {
             return false;
@@ -313,6 +328,7 @@ Chess.prototype = {
                     this.backOneMove();
                     return false;
                 }
+                console.log(this.boardToFen(this.board));
                 return true;
             }
         } else {
@@ -376,6 +392,8 @@ Chess.prototype = {
     },
 
     isLegalMove: function(psign, curr, dest) {
+        var eps = this.enpassantSqr;
+        this.enpassantSqr = null;
         if (this.isLocsInBounds(curr, dest) && this.isUnobstructedPath(curr, dest)) {
             if (psign === 'K') {
                 if (this.isCastlePath(curr, dest)) {
@@ -401,6 +419,7 @@ Chess.prototype = {
                 }
             }
         }
+        this.enpassantSqr = eps;
         return false;
     },
 
@@ -428,7 +447,7 @@ Chess.prototype = {
                 return true;
             } else if (dest[0] - curr[0] === 2 && right_rook.moves === 0 && this.isUnobstructedPath(curr, [right_rook.loc[0]-1, right_rook.loc[1]])) {
                 for (let j = curr[0], n = curr[0]+2; j <= n; j++) {
-                    if (this.isLocUnderAttack([i, curr[1]], piece.color)) return false;
+                    if (this.isLocUnderAttack([j, curr[1]], piece.color)) return false;
                 }
                 return true;
             }
@@ -456,10 +475,10 @@ Chess.prototype = {
     isPawnPath: function(curr, dest) {
         var piece = this.board[curr[0]][curr[1]];
         var dir = (piece.color == 'w' ? 1 : -1);
-        console.log(this.board[dest[0]][dest[1]] === null);
         if (dest[1] - curr[1] === dir && dest[0] - curr[0] === 0 && this.board[dest[0]][dest[1]] === null) {
             return true;
-        } else if (piece.moves == 0 && Math.abs(dest[0] - curr[0]) === 0 && Math.abs(dest[1] - curr[1]) === 2 && this.board[dest[0]][dest[1]] === null) {
+        } else if (piece.moves === 0 && Math.abs(dest[0] - curr[0]) === 0 && Math.abs(dest[1] - curr[1]) === 2 && this.board[dest[0]][dest[1]] === null) {
+            this.enpassantSqr = [curr[0], curr[1]+dir];
             return true;
         } else if (Math.abs(dest[0] - curr[0]) === 1 && dest[1] - curr[1] == dir && this.pieceColorAtLoc(dest) == (this.oppositeColor(piece.color))) {
             return true;
@@ -500,8 +519,8 @@ Chess.prototype = {
     isLocsInBounds: function(locs) {
         for (let i = 0, n = arguments.length; i < n; i++) {
             var loc = arguments[i];
-            for (let j in [0,1]) {
-                if (loc[i] < 0 || loc[i] > 7) return false;
+            for (let j = 0; j <= 1; j++) {
+                if (loc[j] < 0 || loc[j] > 7) return false;
             }
         }
         return true;
@@ -533,12 +552,12 @@ Chess.prototype = {
                             }
                         }
                         if (!i) {
-                            for (let p in path) {
-                                if (!this.board[curr[0]][p]) return false;
+                            for (let i = 0, n = path.length; i < n; i++) {
+                                if (this.board[curr[0]][path[i]]) return false;
                             }
                         } else {
-                            for (let p in path) {
-                                if (!this.board[p][curr[1]]) return false;
+                            for (let i = 0, n = path.length; i < n; i++) {
+                                if (this.board[path[i]][curr[1]]) return false;
                             }
                         }
                     }

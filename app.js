@@ -5,8 +5,6 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var debug = require('debug')('app4');
-var ChessGame = require('./models/chess.js');
-var chess = new ChessGame();
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -16,19 +14,6 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
-io.on('connection', function(socket) {
-    console.log('A user connected');
-    //console.log(chess.getPositionObj());
-    socket.on('drop piece', function(data) {
-        chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
-        io.emit('board', chess.getPositionObj());
-    });
-});
-
-server.listen(3000, function() {
-    console.log('Listening...');
-
-});
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -70,3 +55,19 @@ server = app.listen(app.get('port'), function () {
     debug('Express server listening on port ' + server.address().port);
 });
 */
+
+io.on('connection', function(socket) {
+    var ChessGame = require('./models/chess.js');
+    var chess = new ChessGame();
+    console.log('A user connected');
+    //console.log(chess.getPositionObj());
+    socket.on('drop piece', function(data) {
+        chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
+        io.emit('board', chess.getPositionObj());
+    });
+});
+
+server.listen(3000, function() {
+    console.log('Listening...');
+
+});
