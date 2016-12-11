@@ -50,7 +50,7 @@ Chess.prototype = {
     },
      */
 
-    boardToFen: function(board) {
+    boardToFen: function() {
         function fenPSign(p) {
             if (p.color === 'w') {
                 return p.sign;
@@ -63,7 +63,7 @@ Chess.prototype = {
             var row = '';
             var num = 0;
             for (let x = 0; x < 8; x++) {
-                var p = board[x][y];
+                var p = this.board[x][y];
                 if (p === null) {
                     num++;
                 } else {
@@ -76,10 +76,10 @@ Chess.prototype = {
         }
         fen += this.current_move_side + ' ';
         var canCastle = false;
-        if (board[4][0] && this.isCastlePath([4, 0], [6, 0])) {fen += 'K'; canCastle = true;}
-        if (board[4][0] && this.isCastlePath([4, 0], [2, 0])) {fen += 'Q'; canCastle = true;}
-        if (board[4][7] && this.isCastlePath([4, 7], [6, 7])) {fen += 'k'; canCastle = true;}
-        if (board[4][7] && this.isCastlePath([4, 7], [2, 7])) {fen += 'q'; canCastle = true;}
+        if (this.board[4][0] && this.isCastlePath([4, 0], [6, 0])) {fen += 'K'; canCastle = true;}
+        if (this.board[4][0] && this.isCastlePath([4, 0], [2, 0])) {fen += 'Q'; canCastle = true;}
+        if (this.board[4][7] && this.isCastlePath([4, 7], [6, 7])) {fen += 'k'; canCastle = true;}
+        if (this.board[4][7] && this.isCastlePath([4, 7], [2, 7])) {fen += 'q'; canCastle = true;}
         fen += canCastle ? ' ' : '- ';
         fen += this.convPosToStr(this.enpassantSqr);
 
@@ -87,12 +87,11 @@ Chess.prototype = {
     },
 
     fenToBoard: function(fen) {
-
     },
 
-    availableMoves: function(side) {
+    availableMoves: function() {
         var moves = [];
-        var movingSide = this.pieces[this.colorToIndex(side)];
+        var movingSide = this.pieces[this.colorToIndex(this.current_move_side)];
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
                 for (let p = 0, n = movingSide.length; p < n; p++) {
@@ -104,10 +103,6 @@ Chess.prototype = {
             }
         }
         return moves;
-    },
-
-    generalFeatures: function() {
-
     },
 
     convPosFromStr: function(posStr) {
@@ -328,7 +323,7 @@ Chess.prototype = {
                     this.backOneMove();
                     return false;
                 }
-                console.log(this.boardToFen(this.board));
+                console.log(this.boardToFen());
                 return true;
             }
         } else {

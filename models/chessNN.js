@@ -1,7 +1,9 @@
 var math = require('mathjs');
 
 //weights read from file
-function ChessNN(gw, gb, ghw, pw, pb, phw, sw, sb, shw, hb, h2w, h2b) {
+//var gw = ..., gb = ...;
+//gw, gb, ghw, pw, pb, phw, sw, sb, shw, hb, h2w, h2b
+function ChessNN() {
     this.gw = gw;
     this.gb = gb;
     this.ghw = ghw;
@@ -51,7 +53,7 @@ ChessNN.prototype = {
     },
 
     //back propagation
-    backward: function(error) {
+    backprop: function(error) {
         var dout = error < 0 ? -1 : (error > 0 ? 1 : 0);
         var dh2s = dout * this.dtanh(this.h2s);
         var dh2w = dh2s * math.transpose(this.h2);
@@ -99,6 +101,7 @@ ChessNN.prototype = {
         var dpw = math.multiply(dps, this.pf);
         var dsw = math.multiply(dss, this.sf);
 
+        //TODO: update weights and biases using AdaDelta
     },
 
     //Rectified Linear Unit as activation
