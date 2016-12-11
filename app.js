@@ -57,7 +57,7 @@ server = app.listen(app.get('port'), function () {
 */
 
 io.on('connection', function(socket) {
-    var ChessGame = require('./models/chess.js');
+    var ChessGame = require('./models/chessGame.js');
     var chess = new ChessGame();
     console.log('A user connected');
     //console.log(chess.getPositionObj());
