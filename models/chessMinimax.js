@@ -1,9 +1,10 @@
-var nn = new require('./chessNN.js')();
-var chess = new require('./chessGame.js')();
+var nn = new (require('./chessNN.js'))();
+var chess = new (require('./chessGame.js'))();
 
 //TODO implement alpha-beta
 function minimax(fen, depth, alpha, beta) {
-    if (chess.fenToBoard(fen).isCheckMate() || depth <= 0) {
+    chess.fenToBoard(fen);
+    if (chess.isCheckMate() || depth <= 0) {
         return nn.forward(chess.gfeatures, chess.pfeatures, chess.sfeatures);
     }
     var result = [-Infinity, null];

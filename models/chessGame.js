@@ -8,7 +8,7 @@ function Chess() {
     this.hist_index = 0;
     this.pieces = Array(2);
     for (let c = 0; c <= 1; c++) {
-        this.pieces[c] = [new Rook(), new Knight(), new Bishop(), new Queen(), new King(), new Bishop(), new Knight(), new Rook(), new Pawn(), new Pawn(), new Pawn(), new Pawn(), new Pawn(), new Pawn(), new Pawn(), new Pawn()];
+        this.pieces[c] = [new Rook(), new Knight(), new Bishop(), new Queen(), new King(), new Bishop(), new Knight(), new Rook(), new Pawn(0), new Pawn(1), new Pawn(2), new Pawn(3), new Pawn(4), new Pawn(5), new Pawn(6), new Pawn(7)];
     }
     for (let k = 0; k < 8; k++) {
         for (let i = 0; i <= 1; i++) {
@@ -28,6 +28,7 @@ function Chess() {
     this.promoted_pieces = [[], []];
     this.resign = false;
     this.enpassantSqr = null;
+    this.fenCastleRights = [true, true, true, true]; //[white king-side, w queen-side, b king-side, b queen-side]
 }
 
 Chess.prototype = {
@@ -49,6 +50,24 @@ Chess.prototype = {
         //this.drawBoard();
     },
      */
+
+    gfeatures: function() {
+        var gf = [];
+        var ind = 0;
+        gf[ind++] = [this.current_move_side === 'w' ? 1 : -1];
+        for (let i = 0, n = this.fenCastleRights.length; i < n; i++) {
+            gf[ind++] = [this.fenCastleRights[i] ? 1 : -1];
+        }
+
+    },
+
+    pfeatures: function() {
+
+    },
+
+    sfeatures: function() {
+
+    },
 
     boardToFen: function() {
         function fenPSign(p) {
@@ -75,11 +94,26 @@ Chess.prototype = {
             fen += row + (y === 0 ? ' ' : '/');
         }
         fen += this.current_move_side + ' ';
+
         var canCastle = false;
-        if (this.board[4][0] && this.isCastlePath([4, 0], [6, 0])) {fen += 'K'; canCastle = true;}
-        if (this.board[4][0] && this.isCastlePath([4, 0], [2, 0])) {fen += 'Q'; canCastle = true;}
-        if (this.board[4][7] && this.isCastlePath([4, 7], [6, 7])) {fen += 'k'; canCastle = true;}
-        if (this.board[4][7] && this.isCastlePath([4, 7], [2, 7])) {fen += 'q'; canCastle = true;}
+        var castleXLocs = [7, 0];
+        var castleYLocs = [0, 7];
+        var castleRightsStr = 'KQkq';
+        for (let colorIndex = 0; colorIndex <= 1; colorIndex++) {
+            for (let castleSide = 0; castleSide <= 1; castleSide++) {
+                var castleRightsInd = castleSide + colorIndex * 2;
+                var castlePiece = this.board[castleXLocs[castleSide]][castleYLocs[colorIndex]];
+                if (this.fenCastleRights[castleRightsInd] &&
+                    this.pieces[colorIndex][4].moves === 0 &&
+                    castlePiece &&
+                    castlePiece.sign === 'R' &&
+                    castlePiece.moves === 0) {
+                    fen += castleRightsStr[castleRightsInd];
+                    canCastle = true;
+                }
+            }
+        }
+
         fen += canCastle ? ' ' : '- ';
         fen += this.convPosToStr(this.enpassantSqr);
 
@@ -87,17 +121,92 @@ Chess.prototype = {
     },
 
     fenToBoard: function(fen) {
+        //Take pieces off board (nullify squares and turn pieces dead)
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                this.board[x][y] = null;
+            }
+        }
+        for (let c = 0; c <= 1; c++) {
+            for (let pw = 0, m = this.promoted_pieces[c].length; pw < m; pw++) {
+                var pawn = this.promoted_pieces[c][pw];
+                this.pieces[c][8 + pawn.rank] = pawn;
+            }
+            for (let p = 0, n = this.pieces[c].length; p < n; p++) {
+                this.pieces[c][p].alive = false;
+                this.pieces[c][p].moves = 0;
+            }
+        }
+
+        var piecesKeys = {r: 'bR', R: 'wR',
+                          n: 'bN', N: 'wN',
+                          b: 'bB', B: 'wB',
+                          q: 'bQ', Q: 'wQ',
+                          k: 'bK', K: 'wK',
+                          p: 'bP', P: 'wP'
+                         };
+
+        //Get fen array and arrange pieces
+        var fenArray = fen.split(' ');
+        fenArray[0] = fenArray[0].split('/');
+        for (let i = 0; i < 8; i++) {
+            var y = 7 - i;
+            var x = 0;
+            for (let j = 0, m = fenArray[0][i].length; j < m; j++) {
+                var char = fenArray[0][i][j];
+                var num = parseInt(char);
+                if (num) {
+                    x += num-1;
+                } else {
+                    var pieceVal = piecesKeys[char];
+                    var pieces = this.pieces[this.colorToIndex(pieceVal[0])];
+                    for (let p = 0, pn = pieces.length; p < pn; p++) {
+                        if (pieces[p].sign === pieceVal[1] && !pieces[p].alive) {
+                            pieces[p].loc = [x, y];
+                            pieces[p].alive = true;
+                            this.board[x][y] = pieces[p];
+                            break;
+                        }
+                    }
+                }
+                x++;
+            }
+        }
+        //set move side
+        this.current_move_side = fenArray[1];
+        //set castling rights
+        var castleStr = fenArray[2];
+        var FCRKeys = ['K', 'Q', 'k', 'q'];
+        for (let f = 0, fn = this.fenCastleRights.length; f < fn; f++) {
+            if (castleStr.indexOf(FCRKeys[f]) !== -1) {
+                this.fenCastleRights[f] = true;
+            } else {
+                this.fenCastleRights[f] = false;
+            }
+        }
     },
 
     availableMoves: function() {
         var moves = [];
-        var movingSide = this.pieces[this.colorToIndex(this.current_move_side)];
+        var movingSidePieces = this.pieces[this.colorToIndex(this.current_move_side)];
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
-                for (let p = 0, n = movingSide.length; p < n; p++) {
-                    var piece = movingSide[p];
-                    if (piece.alive && this.isLegalMove(piece.sign, piece.loc, [x, y])) {
-                        moves.push([piece.loc, [x, y]]);
+                for (let p = 0, n = movingSidePieces.length; p < n; p++) {
+                    var piece = movingSidePieces[p];
+                    var from = [piece.loc[0], piece.loc[1]], to = [x, y];
+                    if (piece.alive) {
+                        if (piece.sign === 'P' && this.isPromotionPath(from, to)) {
+                            var choices = 'qrbn';
+                            for (let i = 0, cn = choices.length; i < cn; i++) {
+                                if (this.move(from, to, choices[i])) {
+                                    moves.push([from, to, choices[i]]);
+                                    this.backOneMove();
+                                }
+                            }
+                        } else if (this.move(from, to, null)) {
+                            moves.push([from, to, null]);
+                            this.backOneMove();
+                        }
                     }
                 }
             }
@@ -218,17 +327,18 @@ Chess.prototype = {
     promote: function(pawn, option) {
         var promo;
         if (option === null) {
-            promo = prompt("Piece to promote your pawn to? ([q]ueen/[r]ook/[k]night/[b]ishop)");
-            while (promo !== 'q' && promo !== 'r' && promo !== 'k' && promo !== 'b') {
-                promo = prompt("Please enter a valid choice: ([q]ueen/[r]ook/[k]night/[b]ishop)");
+            /*TODO promo = prompt("Piece to promote your pawn to? ([q]ueen/[r]ook/k[n]ight/[b]ishop)");
+            while (promo !== 'q' && promo !== 'r' && promo !== 'n' && promo !== 'b') {
+                promo = prompt("Please enter a valid choice: ([q]ueen/[r]ook/k[n]ight/[b]ishop)");
 
             }
+             */
         } else {
             promo = option;
         }
         var choices = {'q': Queen,
                        'r': Rook,
-                       'k': Knight,
+                       'n': Knight,
                        'b': Bishop};
         var promote_to = new choices[promo](pawn.color, pawn.loc);
         promote_to.loc = pawn.loc;
@@ -302,14 +412,14 @@ Chess.prototype = {
                 this.history[this.hist_index] = [curr, dest, m, option, false];
                 if (this.pieceColorAtLoc(dest)) {
                     this.eat(dest);
-                    this.history[this.hist_index][-1] = true;
+                    this.history[this.hist_index][4] = true;
                 }
                 if (m === 'promotion') {
                     var promo_array = this.promote(piece, option);
                     piece = promo_array[0];
                     this.history[this.hist_index][3] = promo_array[1];
                 } else if (m === 'en_passant') {
-                    this.history[this.hist_index][-1] = true;
+                    this.history[this.hist_index][4] = true;
                     var pawn_eat_y = dest[1] + (piece.color == 'w' ? -1 : 1);
                     this.eat([dest[0], pawn_eat_y]);
                 } else if (m === 'castle') {
@@ -420,6 +530,7 @@ Chess.prototype = {
 
     isPromotionPath: function(curr, dest) {
         var pawn = this.board[curr[0]][curr[1]];
+        if (!pawn) return false;
         var dir = pawn.color == 'w' ? 1 : -1;
         if (dest[1] - curr[1] === dir && (dest[1] === 0 || dest[1] === 7)) {
             if ((dest[0] - curr[0] === 0 && this.pieceColorAtLoc(dest) === null) || (Math.abs(dest[0] - curr[0]) === 1 && this.pieceColorAtLoc(dest) === this.oppositeColor(pawn.color))) {
@@ -432,15 +543,17 @@ Chess.prototype = {
 
     isCastlePath: function(curr, dest) {
         var piece = this.board[curr[0]][curr[1]];
+        if (!piece) return false;
         if (piece.sign === 'K' && piece.moves === 0 && dest[1] === curr[1]) {
-            var left_rook = this.pieces[this.colorToIndex(piece.color)][0];
-            var right_rook = this.pieces[this.colorToIndex(piece.color)][7];
-            if (dest[0] - curr[0] === -2 && (left_rook.moves === 0) && this.isUnobstructedPath(curr, [left_rook.loc[0]+1, left_rook.loc[1]])) {
+            var colorInd = this.colorToIndex(piece.color);
+            var queen_rook = this.board[0][curr[1]]; //this.pieces[colorInd][0];
+            var king_rook = this.board[7][curr[1]]; //this.pieces[colorInd][7];
+            if (dest[0] - curr[0] === -2 && this.fenCastleRights[1+2*colorInd] && queen_rook && queen_rook.moves === 0 && this.isUnobstructedPath(curr, [queen_rook.loc[0]+1, queen_rook.loc[1]])) {
                 for (let i = curr[0], n = curr[0]-2; i >= n; i--) {
                     if (this.isLocUnderAttack([i, curr[1]], piece.color)) return false;
                 }
                 return true;
-            } else if (dest[0] - curr[0] === 2 && right_rook.moves === 0 && this.isUnobstructedPath(curr, [right_rook.loc[0]-1, right_rook.loc[1]])) {
+            } else if (dest[0] - curr[0] === 2 && this.fenCastleRights[0+2*colorInd] && king_rook && king_rook.moves === 0 && this.isUnobstructedPath(curr, [king_rook.loc[0]-1, king_rook.loc[1]])) {
                 for (let j = curr[0], n = curr[0]+2; j <= n; j++) {
                     if (this.isLocUnderAttack([j, curr[1]], piece.color)) return false;
                 }
@@ -452,6 +565,7 @@ Chess.prototype = {
 
     isEnPassantPath: function(curr, dest) {
         var piece = this.board[curr[0]][curr[1]];
+        if (!piece) return false;
         var dir = piece.color === 'w' ? 1 : -1;
         if (Math.abs(dest[0] - curr[0]) === 1 && dest[1] - curr[1] === dir) {
             if (!this.pieceColorAtLoc(dest) && this.history[this.hist_index - 1]) {
@@ -469,10 +583,12 @@ Chess.prototype = {
 
     isPawnPath: function(curr, dest) {
         var piece = this.board[curr[0]][curr[1]];
-        var dir = (piece.color == 'w' ? 1 : -1);
+        if (!piece) return false;
+        var dir = (piece.color === 'w' ? 1 : -1);
+        var startYPos = piece.color === 'w' ? 1 : 6;
         if (dest[1] - curr[1] === dir && dest[0] - curr[0] === 0 && this.board[dest[0]][dest[1]] === null) {
             return true;
-        } else if (piece.moves === 0 && Math.abs(dest[0] - curr[0]) === 0 && Math.abs(dest[1] - curr[1]) === 2 && this.board[dest[0]][dest[1]] === null) {
+        } else if (curr[1] === startYPos && Math.abs(dest[0] - curr[0]) === 0 && Math.abs(dest[1] - curr[1]) === 2 && this.board[dest[0]][dest[1]] === null) {
             this.enpassantSqr = [curr[0], curr[1]+dir];
             return true;
         } else if (Math.abs(dest[0] - curr[0]) === 1 && dest[1] - curr[1] == dir && this.pieceColorAtLoc(dest) == (this.oppositeColor(piece.color))) {
@@ -522,10 +638,11 @@ Chess.prototype = {
     },
 
     pieceColorAtLoc: function(loc) {
-        if (!this.board[loc[0]][loc[1]]) {
+        var piece = this.board[loc[0]][loc[1]];
+        if (!piece) {
             return null;
         } else {
-            return this.board[loc[0]][loc[1]].color;
+            return piece.color;
         }
     },
 
@@ -615,10 +732,11 @@ function King() {
     this.sign = 'K';
 }
 
-function Pawn() {
+function Pawn(rank) {
     this.color = '';
     this.loc = [];
     this.sign = 'P';
+    this.rank = rank;
 }
 
 Rook.prototype = new Piece();

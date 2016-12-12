@@ -1,6 +1,6 @@
-var nn = new require('./chessNN.js')();
 var minimax = require('./chessMinimax.js');
-var chess = new require('./chessGame.js')();
+var nn = new (require('./chessNN.js'))();
+var chess = new (require('./chessGame.js'))();
 
 var DEPTH = 10; //search depth parameter
 var LAMBDA = 0.7; //TDleaf parameter
