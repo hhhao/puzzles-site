@@ -22,9 +22,9 @@ ChessNN.prototype = {
     //forward neural net.
     //gfeatures, pfeatures, sfeatures are general, piece, square features
     forward: function(gfeatures, pfeatures, sfeatures) {
-        this.gf = math.transpose(gfeatures);
-        this.pf = math.transpose(pfeatures);
-        this.sf = math.transpose(sfeatures);
+        this.gf = gfeatures;
+        this.pf = pfeatures;
+        this.sf = sfeatures;
 
         this.gs = math.multiply(this.gw, this.gf) + this.gb;
         this.gh = math.map(this.gs, function(v) {

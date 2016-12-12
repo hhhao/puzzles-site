@@ -13,7 +13,7 @@ var iterations = 0;
 while ('not at EOF') {
     iterations++;
     var totalError = 0;
-    //TODO implement read N (256?) fen postions
+    //TODO implement read N (256?) random fen postions
     while ('read N fen postions') {
         //read fen position from file
         var fen; //TODO: =...?

@@ -29,6 +29,7 @@ function Chess() {
     this.resign = false;
     this.enpassantSqr = null;
     this.fenCastleRights = [true, true, true, true]; //[white king-side, w queen-side, b king-side, b queen-side]
+    this.pieceValues = {K: 1000, Q: 9, R: 5, B: 3, N: 3, P: 1};
 }
 
 Chess.prototype = {
@@ -58,15 +59,110 @@ Chess.prototype = {
         for (let i = 0, n = this.fenCastleRights.length; i < n; i++) {
             gf[ind++] = [this.fenCastleRights[i] ? 1 : -1];
         }
+        var pOrder = ['Q', 'R', 'B', 'N', 'P'];
+        for (let c = 0; c <= 1; c++) {
+            var pieces = this.pieces[c];
+            for (let ord = 0, ordn = pOrder.length; ord < ordn; ord++) {
+                var sign = pOrder[ord];
+                gf[ind] = [0];
+                for (let p = 0, pn = pieces.length; p < pn; p++) {
+                    if (pieces[p].sign === sign && pieces[p].alive) {
+                        gf[ind][0]++;
+                    }
+                }
+                ind++;
+            }
+        }
+        return gf;
+    },
 
+    normalizedCoord: function(coord) {
+        return (coord - 3.5)/3.5;
+    },
+
+    attackValue: function(sqr) {
+        var attackers = this.pieces[this.colorToIndex(this.oppositeColor(this.current_move_side))];
+        var lowest = null, lowestVal = Infinity;
+        for (let i = 0, n = attackers.length; i < n; i++) {
+            var a = attackers[i];
+            if (a.alive &&
+                this.isLegalMove(a.sign, a.loc, sqr) &&
+                this.pieceValues[a.sign] < lowestVal) {
+                lowest = a.sign;
+                lowestVal = this.pieceValues[a.sign];
+            }
+        }
+        return 1/lowestVal;
+    },
+
+    defendValue: function(sqr) {
+        var defenders = this.pieces[this.colorToIndex(this.current_move_side)];
+        var lowest = null, lowestVal = Infinity;
+        for (let i = 0, n = defenders.length; i < n; i++) {
+            var d = defenders[i];
+            if (d.alive &&
+                this.isLegalMove(d.sign, d.loc, sqr, true) &&
+                this.pieceValues[d.sign] < lowestVal) {
+                lowest = d.sign;
+                lowestVal = this.pieceValues[d.sign];
+            }
+        }
+        return 1/lowestVal;
+
+    },
+
+    calcMobility: function(piece, dir) {
+        var steps = 0;
+        //max steps in any direction is 7
+        for (let i = 1; i < 8; i++) {
+            var dest = [piece.loc[0] + i * dir[0], piece.loc[1] + i * dir[1]];
+            if (this.isLegalMove(piece.sign, piece.loc, dest)) {
+                steps++;
+            } else {
+                break;
+            }
+        }
+        return steps/7;
     },
 
     pfeatures: function() {
-
+        var pf = [];
+        for (let c = 0; c <= 1; c++) {
+            var pieces = this.pieces[c];
+            for (let i = 0, n = pieces.length; i < n; i++) {
+                var p = pieces[i];
+                pf.push([p.sign, p.alive ? 1 : -1]);
+                pf.push([this.normalizedCoord(p.loc[0])]);
+                pf.push([this.normalizedCoord(p.loc[1])]);
+                pf.push([this.attackValue(p.loc)]);
+                pf.push([this.defendValue(p.loc)]);
+                if (p.sign === 'Q' || p.sign === 'R' || p.sign === 'B') {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            if (p.sign === 'Q' && (dx || dy)) {
+                                pf.push([this.calcMobility(p, [dx, dy])]);
+                            } else if (p.sign === 'R' && (!dx || !dy) && (dx || dy)) {
+                                pf.push([this.calcMobility(p, [dx, dy])]);
+                            } else if (p.sign === 'B' && dx && dy) {
+                                pf.push([this.calcMobility(p, [dx, dy])]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return pf;
     },
 
     sfeatures: function() {
-
+        var sf = [];
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                sf.push([this.attackValue([x, y])]);
+                sf.push([this.defendValue([x, y])]);
+            }
+        }
+        return sf;
     },
 
     boardToFen: function() {
@@ -433,7 +529,7 @@ Chess.prototype = {
                     this.backOneMove();
                     return false;
                 }
-                console.log(this.boardToFen());
+                //console.log(this.boardToFen());
                 return true;
             }
         } else {
@@ -473,7 +569,7 @@ Chess.prototype = {
         }
     },
 
-    isCheckmateStalemate: function() {
+    isCheckmate: function() {
         var currPieces = this.pieces[this.colorToIndex(this.current_move_side)];
         for (let i = 0, n = currPieces.length; i < n; i++) {
             var p = currPieces[i];
@@ -489,17 +585,18 @@ Chess.prototype = {
             }
         }
         if (this.isInCheck(this.current_move_side)) {
-            console.log('Checkmate!' + this.colorToWord(this.oppositeColor(this.current_move_side)) + 'wins!');
+            //console.log('Checkmate!' + this.colorToWord(this.oppositeColor(this.current_move_side)) + 'wins!');
+            return true;
         } else {
             console.log('Stalemate! Draw!');
+            return false;
         }
-        return true;
     },
 
-    isLegalMove: function(psign, curr, dest) {
+    isLegalMove: function(psign, curr, dest, noDestPiece) {
         var eps = this.enpassantSqr;
         this.enpassantSqr = null;
-        if (this.isLocsInBounds(curr, dest) && this.isUnobstructedPath(curr, dest)) {
+        if (this.isLocsInBounds(curr, dest) && this.isUnobstructedPath(curr, dest, noDestPiece)) {
             if (psign === 'K') {
                 if (this.isCastlePath(curr, dest)) {
                     return 'castle';
@@ -646,51 +743,50 @@ Chess.prototype = {
         }
     },
 
-    isUnobstructedPath: function(curr, dest) {
-        if (this.pieceColorAtLoc(curr) === this.pieceColorAtLoc(dest)) {
+    isUnobstructedPath: function(curr, dest, noDestPiece) {
+        if (!noDestPiece && this.pieceColorAtLoc(curr) === this.pieceColorAtLoc(dest)) {
             return false;
-        } else {
-            if (this.isStraightPath(curr, dest)) {
-                for (let i = 0; i <= 1; i++) {
-                    if (curr[i] === dest[i]) {
-                        var path = [];
-                        if (curr[1-i] < dest[1-i]) {
-                            for (let p = curr[1-i]+1, n = dest[1-i]; p < n; p++) {
-                                path.push(p);
-                            }
-                        } else {
-                            for (let p = curr[1-i]-1, n = dest[1-i]; p > n; p--) {
-                                path.push(p);
-                            }
+        }
+        if (this.isStraightPath(curr, dest)) {
+            for (let i = 0; i <= 1; i++) {
+                if (curr[i] === dest[i]) {
+                    var path = [];
+                    if (curr[1-i] < dest[1-i]) {
+                        for (let p = curr[1-i]+1, n = dest[1-i]; p < n; p++) {
+                            path.push(p);
                         }
-                        if (!i) {
-                            for (let i = 0, n = path.length; i < n; i++) {
-                                if (this.board[curr[0]][path[i]]) return false;
-                            }
-                        } else {
-                            for (let i = 0, n = path.length; i < n; i++) {
-                                if (this.board[path[i]][curr[1]]) return false;
-                            }
+                    } else {
+                        for (let p = curr[1-i]-1, n = dest[1-i]; p > n; p--) {
+                            path.push(p);
+                        }
+                    }
+                    if (i === 0) {
+                        for (let k = 0, n = path.length; k < n; k++) {
+                            if (this.board[curr[0]][path[k]]) return false;
+                        }
+                    } else {
+                        for (let k = 0, n = path.length; k < n; k++) {
+                            if (this.board[path[k]][curr[1]]) return false;
                         }
                     }
                 }
-                return true;
-            } else if (this.isDiagonalPath(curr, dest)) {
-                var x_change = dest[0] - curr[0];
-                var y_change = dest[1] - curr[1];
-                var x_inc = x_change / Math.abs(x_change);
-                var y_inc = y_change / Math.abs(y_change);
-                var x = curr[0] + x_inc;
-                var y = curr[1] + y_inc;
-                while (Math.abs(x - dest[0]) > 0 && Math.abs(y - dest[1]) > 0) {
-                    if (this.board[x][y]) return false;
-                    x += x_inc;
-                    y += y_inc;
-                }
-                return true;
-            } else if (this.isKnightPath(curr, dest)) {
-                return true;
             }
+            return true;
+        } else if (this.isDiagonalPath(curr, dest)) {
+            var x_change = dest[0] - curr[0];
+            var y_change = dest[1] - curr[1];
+            var x_inc = x_change / Math.abs(x_change);
+            var y_inc = y_change / Math.abs(y_change);
+            var x = curr[0] + x_inc;
+            var y = curr[1] + y_inc;
+            while (Math.abs(x - dest[0]) > 0 && Math.abs(y - dest[1]) > 0) {
+                if (this.board[x][y]) return false;
+                x += x_inc;
+                y += y_inc;
+            }
+            return true;
+        } else if (this.isKnightPath(curr, dest)) {
+            return true;
         }
         return false;
     }
