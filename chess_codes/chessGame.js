@@ -290,23 +290,25 @@ Chess.prototype = {
     availableMoves: function() {
         var moves = [];
         var movingSidePieces = this.pieces[this.colorToIndex(this.current_move_side)];
-        for (let x = 0; x < 8; x++) {
-            for (let y = 0; y < 8; y++) {
-                for (let p = 0, n = movingSidePieces.length; p < n; p++) {
-                    var piece = movingSidePieces[p];
-                    var from = [piece.loc[0], piece.loc[1]], to = [x, y];
-                    if (piece.alive) {
+        for (let p = 0, n = movingSidePieces.length; p < n; p++) {
+            var piece = movingSidePieces[p];
+            if (piece.alive) {
+                var from = [piece.loc[0], piece.loc[1]], to = [];
+                for (let x = 0; x < 8; x++) {
+                    to[0] = x;
+                    for (let y = 0; y < 8; y++) {
+                        to[1] = y;
                         if (piece.sign === 'P' && this.isPromotionPath(from, to)) {
                             var choices = 'qrbn';
-                            for (let i = 0, cn = choices.length; i < cn; i++) {
+                            for (let i = 0; i < 4; i++) {
                                 if (this.move(from, to, choices[i])) {
-                                    moves.push([from, to, choices[i]]);
-                                    this.backOneMove();
+                                    moves.push([[from[0], from[1]], [to[0], to[1]], choices[i]]);
+                                    this.backOneMove('d');
                                 }
                             }
                         } else if (this.move(from, to, null)) {
-                            moves.push([from, to, null]);
-                            this.backOneMove();
+                            moves.push([[from[0], from[1]], [to[0], to[1]], null]);
+                            this.backOneMove('d');
                         }
                     }
                 }
@@ -536,7 +538,7 @@ Chess.prototype = {
                 this.posSwitch(curr, dest);
                 this.current_move_side = this.oppositeColor(this.current_move_side);
                 if (this.isInCheck(piece.color)) {
-                    this.backOneMove();
+                    this.backOneMove('d');
                     return false;
                 }
                 //console.log(this.boardToFen());
