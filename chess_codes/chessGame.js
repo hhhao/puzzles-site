@@ -59,17 +59,18 @@ Chess.prototype = {
         for (let i = 0, n = this.fenCastleRights.length; i < n; i++) {
             gf[ind++] = [this.fenCastleRights[i] ? 1 : -1];
         }
-        var pOrder = ['Q', 'R', 'B', 'N', 'P'];
+        var pOrder = [['Q', 2], ['R', 2], ['B', 2], ['N', 2], ['P', 8]];
         for (let c = 0; c <= 1; c++) {
             var pieces = this.pieces[c];
             for (let ord = 0, ordn = pOrder.length; ord < ordn; ord++) {
-                var sign = pOrder[ord];
+                var sign = pOrder[ord][0];
                 gf[ind] = [0];
                 for (let p = 0, pn = pieces.length; p < pn; p++) {
                     if (pieces[p].sign === sign && pieces[p].alive) {
                         gf[ind][0]++;
                     }
                 }
+                gf[ind][0] /= pOrder[ord][1];
                 ind++;
             }
         }
@@ -131,7 +132,7 @@ Chess.prototype = {
             var pieces = this.pieces[c];
             for (let i = 0, n = pieces.length; i < n; i++) {
                 var p = pieces[i];
-                pf.push([p.sign, p.alive ? 1 : -1]);
+                pf.push([p.alive ? 1 : -1]);
                 pf.push([this.normalizedCoord(p.loc[0])]);
                 pf.push([this.normalizedCoord(p.loc[1])]);
                 pf.push([this.attackValue(p.loc)]);
@@ -233,6 +234,10 @@ Chess.prototype = {
                 this.pieces[c][p].moves = 0;
             }
         }
+        this.history = [];
+        this.hist_index = 0;
+        this.promoted_pieces = [[], []];
+        this.dead_pieces = [[], []];
 
         var piecesKeys = {r: 'bR', R: 'wR',
                           n: 'bN', N: 'wN',
@@ -432,11 +437,16 @@ Chess.prototype = {
         } else {
             promo = option;
         }
-        var choices = {'q': Queen,
-                       'r': Rook,
-                       'n': Knight,
-                       'b': Bishop};
-        var promote_to = new choices[promo](pawn.color, pawn.loc);
+        var promote_to;
+        if (promo === 'q') {
+            promote_to = new Queen();
+        } else if (promo === 'r') {
+            promote_to = new Rook();
+        } else if (promo === 'n') {
+            promote_to = new Knight();
+        } else if (promo === 'b') {
+            promote_to = new Bishop();
+        }
         promote_to.loc = pawn.loc;
         promote_to.color = pawn.color;
         promote_to.moves = pawn.moves;
@@ -792,45 +802,34 @@ Chess.prototype = {
     }
 };
 
-function Piece() {
-    var blah = 2;
+function Piece(color, loc) {
     this.alive = true;
     this.moves = 0;
+    this.color = color;
+    this.loc = loc;
 }
 
 function Rook() {
-    this.color = '';
-    this.loc = [];
     this.sign = 'R';
 }
 
 function Knight() {
-    this.color = '';
-    this.loc = [];
     this.sign = 'N';
 }
 
 function Bishop() {
-    this.color = '';
-    this.loc = [];
     this.sign = 'B';
 }
 
 function Queen() {
-    this.color = '';
-    this.loc = [];
     this.sign = 'Q';
 }
 
 function King() {
-    this.color = '';
-    this.loc = [];
     this.sign = 'K';
 }
 
 function Pawn(rank) {
-    this.color = '';
-    this.loc = [];
     this.sign = 'P';
     this.rank = rank;
 }

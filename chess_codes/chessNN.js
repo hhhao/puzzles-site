@@ -31,28 +31,28 @@ ChessNN.prototype = {
         this.pf = pfeatures;
         this.sf = sfeatures;
 
-        this.gs = math.multiply(this.gw, this.gf) + this.gb;
+        this.gs = math.add(math.multiply(this.gw, this.gf), this.gb);
         this.gh = math.map(this.gs, function(v) {
             return this.relu(v);
-        });
+        }.bind(this));
 
-        this.ps = math.multiply(this.pw, this.pf) + this.pb;
+        this.ps = math.add(math.multiply(this.pw, this.pf), this.pb);
         this.ph = math.map(this.ps, function(v) {
             return this.relu(v);
-        });
+        }.bind(this));
 
-        this.ss = math.multiply(this.sw, this.sf) + this.sb;
+        this.ss = math.add(math.multiply(this.sw, this.sf), this.sb);
         this.sh = math.map(this.ss, function(v) {
             return this.relu(v);
-        });
+        }.bind(this));
 
-        this.hs = math.multiply(this.ghw, this.gh) + math.multiply(this.phw, this.ph) + math.multiply(this.shw, this.sh) + this.hb;
+        this.hs = math.add(math.add(math.multiply(this.ghw, this.gh), math.multiply(this.phw, this.ph)), math.add(math.multiply(this.shw, this.sh), this.hb));
         this.h2 = math.map(this.hs, function(v) {
             return this.relu(v);
-        });
+        }.bind(this));
 
-        this.h2s = math.multiply(this.h2w, this.h2) + this.h2b;
-        this.out = this.tanh(this.h2s);
+        this.h2s = math.add(math.multiply(this.h2w, this.h2), this.h2b);
+        this.out = this.tanh(this.h2s[0][0]);
 
         return this.out;
     },
@@ -147,6 +147,7 @@ ChessNN.prototype = {
                         h2w: this.h2w,
                         h2b: this.h2b
                        };
+
         fs.writeFile(fileName, JSON.stringify(dataObj), function(err) {
             if (err) {
                 console.log(err);
