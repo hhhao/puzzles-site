@@ -1,21 +1,26 @@
 var math = require('mathjs');
+var fs = require("fs");
 
 //weights read from file
 //var gw = ..., gb = ...;
 //gw, gb, ghw, pw, pb, phw, sw, sb, shw, hb, h2w, h2b
+
+var weights = JSON.parse(fs.readFileSync("./NNWeights.json"));
+
+
 function ChessNN() {
-    this.gw = gw;
-    this.gb = gb;
-    this.ghw = ghw;
-    this.pw = pw;
-    this.pb = pb;
-    this.pw = phw;
-    this.sw = sw;
-    this.sb = sb;
-    this.shw = shw;
-    this.hb = hb;
-    this.h2w = h2w;
-    this.h2b = h2b;
+    this.gw = weights.gw;
+    this.gb = weights.gb;
+    this.ghw = weights.ghw;
+    this.pw = weights.pw;
+    this.pb = weights.pb;
+    this.phw = weights.phw;
+    this.sw = weights.sw;
+    this.sb = weights.sb;
+    this.shw = weights.shw;
+    this.hb = weights.hb;
+    this.h2w = weights.h2w;
+    this.h2b = weights.h2b;
 }
 
 ChessNN.prototype = {
@@ -126,6 +131,27 @@ ChessNN.prototype = {
     //tanh derivative
     dtanh: function(x) {
         return 1 - Math.pow(Math.tanh(x), 2);
+    },
+
+    writeWeightsJSON: function(fileName) {
+        var dataObj = {gw: this.gw,
+                        gb: this.gb,
+                        ghw: this.ghw,
+                        pw: this.pw,
+                        pb: this.pb,
+                        phw: this.phw,
+                        sw: this.sw,
+                        sb: this.sb,
+                        shw: this.shw,
+                        hb: this.hb,
+                        h2w: this.h2w,
+                        h2b: this.h2b
+                       };
+        fs.writeFile(fileName, JSON.stringify(dataObj), function(err) {
+            if (err) {
+                console.log(err);
+            }
+        });
     }
 };
 
