@@ -582,27 +582,24 @@ Chess.prototype = {
     },
 
     isCheckmate: function() {
-        var currPieces = this.pieces[this.colorToIndex(this.current_move_side)];
-        for (let i = 0, n = currPieces.length; i < n; i++) {
-            var p = currPieces[i];
-            if (p.alive) {
-                for (let x = 0; x < 8; x++) {
-                    for (let y = 0; y < 8; y++) {
-                        if (this.move(p.loc, [x, y], 'q')) {
-                            this.backOneMove('d');
-                            return false;
+        if (this.isInCheck(this.current_move_side)) {
+            var currPieces = this.pieces[this.colorToIndex(this.current_move_side)];
+            for (let i = 0, n = currPieces.length; i < n; i++) {
+                var p = currPieces[i];
+                if (p.alive) {
+                    for (let x = 0; x < 8; x++) {
+                        for (let y = 0; y < 8; y++) {
+                            if (this.move(p.loc, [x, y], 'q')) {
+                                this.backOneMove('d');
+                                return false;
+                            }
                         }
                     }
                 }
             }
-        }
-        if (this.isInCheck(this.current_move_side)) {
-            //console.log('Checkmate!' + this.colorToWord(this.oppositeColor(this.current_move_side)) + 'wins!');
             return true;
-        } else {
-            console.log('Stalemate! Draw!');
-            return false;
         }
+        return false;
     },
 
     isLegalMove: function(psign, curr, dest, noDestPiece) {
