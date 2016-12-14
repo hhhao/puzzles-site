@@ -33,24 +33,6 @@ function Chess() {
 }
 
 Chess.prototype = {
-    /*
-    start: function() {
-        while (!this.isCheckmateStalemate()) {
-            var input_array = [[], []];
-            while (1) {
-                this.drawBoard();
-                console.log(this.colorToWord(this.current_move_side) + "'s move: (eg:b1c3/[b]ack/[f]orward/[r]esign)");
-                if (this.getinput(input_array)) break;
-            }
-            if (this.resign) {
-                console.log(this.colorToWord(this.oppositeColor(this.current_move_side)) + ' wins!');
-                return false;
-            }
-            this.move(input_array[0], input_array[1], null);
-        }
-        //this.drawBoard();
-    },
-     */
 
     gfeatures: function() {
         var gf = [];
@@ -289,26 +271,30 @@ Chess.prototype = {
 
     availableMoves: function() {
         var moves = [];
+        var promoChoices = 'qrbn';
         var movingSidePieces = this.pieces[this.colorToIndex(this.current_move_side)];
         for (let p = 0, n = movingSidePieces.length; p < n; p++) {
             var piece = movingSidePieces[p];
             if (piece.alive) {
-                var from = [piece.loc[0], piece.loc[1]], to = [];
-                for (let x = 0; x < 8; x++) {
-                    to[0] = x;
-                    for (let y = 0; y < 8; y++) {
-                        to[1] = y;
-                        if (piece.sign === 'P' && this.isPromotionPath(from, to)) {
-                            var choices = 'qrbn';
-                            for (let i = 0; i < 4; i++) {
-                                if (this.move(from, to, choices[i])) {
-                                    moves.push([[from[0], from[1]], [to[0], to[1]], choices[i]]);
-                                    this.backOneMove('d');
-                                }
+                for (let m = 0, ml = piece.mobility.dirs.length; m < ml; m++) {
+                    var dir = piece.mobility.dirs[m], limit = piece.mobility.limit;
+                    for (let s = 1; s <= limit; s++) {
+                        var dest = [piece.loc[0] + s * dir[0], piece.loc[1] + s * dir[1]];
+                        if (s === 1) {
+                            if (this.move(piece.loc, dest, 'q')) {
+                                this.backOneMove('d');
+                            } else {
+                                break;
                             }
-                        } else if (this.move(from, to, null)) {
-                            moves.push([[from[0], from[1]], [to[0], to[1]], null]);
-                            this.backOneMove('d');
+                        } else if (!this.isLegalMove(piece.sign, piece.loc, dest)) {
+                            break;
+                        }
+                        if (piece.sign === 'P' && this.isPromotionPath(piece.loc, dest)) {
+                            for (let i = 0; i < 4; i++) {
+                                moves.push([[piece.loc[0], piece.loc[1]], dest, promoChoices[i]]);
+                            }
+                        } else {
+                            moves.push([[piece.loc[0], piece.loc[1]], dest, null]);
                         }
                     }
                 }
@@ -810,27 +796,44 @@ function Piece(color, loc) {
 
 function Rook() {
     this.sign = 'R';
+    this.mobility = {dirs: [[-1, 0], [0, 1], [1, 0], [0, -1]],
+                     limit: 7};
 }
 
 function Knight() {
     this.sign = 'N';
+    this.mobility = {dirs: [[-1, 2], [-1, -2], [1, 2], [1,-2],
+                            [-2, 1], [-2, -1], [2, 1], [2, -1]],
+                     limit: 1};
 }
 
 function Bishop() {
     this.sign = 'B';
+    this.mobility = {dirs: [[-1, -1], [1, 1], [-1, 1], [1, -1]],
+                     limit: 7};
 }
 
 function Queen() {
     this.sign = 'Q';
+    this.mobility = {dirs: [[-1, 0], [0, 1], [1, 0], [0, -1],
+                            [-1, -1], [1, 1], [-1, 1], [1, -1]],
+                     limit: 7};
 }
 
 function King() {
     this.sign = 'K';
+    this.mobility = {dirs: [[-1, 0], [0, 1], [1, 0], [0, -1],
+                            [-1, -1], [1, 1], [-1, 1], [1, -1],
+                            [-2, 0], [2, 0]],
+                     limit: 1};
 }
 
 function Pawn(rank) {
     this.sign = 'P';
     this.rank = rank;
+    this.mobility = {dirs: [[0, 1], [0, 2], [1, 1], [-1, 1],
+                            [0, -1], [0, -2], [1, -1], [-1, -1]],
+                     limit: 1};
 }
 
 Rook.prototype = new Piece();

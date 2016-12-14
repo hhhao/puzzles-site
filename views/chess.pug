@@ -12,6 +12,7 @@ html
       $(document).ready(function() {
           var socket = io();
 
+          socket.emit('ready');
           var onDrop = function(source, target, piece, newPos, oldPos, orientation) {
               socket.emit('drop piece', {from: source, to: target})
           }
@@ -23,5 +24,6 @@ html
           });
           socket.on('board', function(position) {
               board1.position(position);
+              socket.emit('ready');
           })
       });

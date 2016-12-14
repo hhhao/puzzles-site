@@ -6,15 +6,15 @@ var fs = require('fs');
 var readline = require('readline');
 var stream = require('stream');
 
-var instream = fs.createReadStream('./unique00.fen');
+var instream = fs.createReadStream('../../tests/filetests/unique00.fen');
 var outstream = new stream();
 var rl = readline.createInterface(instream, outstream);
 
-var DEPTH = 10; //search depth parameter
+var DEPTH = 2; //search depth parameter
 var LAMBDA = 0.7; //TDleaf parameter
-var SELF_PLAY_TURNS = 12; //Number of turns to play self
-var EPOCH = 100; //num of backprop iterations before write weights to file
-var NFEN_PER_ITER = 128; //num of fen to process before backprop
+var SELF_PLAY_TURNS = 2; //Number of turns to play self
+var EPOCH = 5; //num of backprop iterations before write weights to file
+var NFEN_PER_ITER = 1; //num of fen to process before backprop
 
 
 var iteration = 0; //denotes iteration num of current epoch
@@ -24,6 +24,7 @@ rl.on('line', function(fen) {
     iterSubCount++;
     //set board to fen
     chess.fenToBoard(fen);
+    console.log('initial fen: ', fen);
 
     //make a random move
     var moves = chess.availableMoves();
@@ -35,26 +36,45 @@ rl.on('line', function(fen) {
     var prevScore;
     for (let i = 0; i < SELF_PLAY_TURNS; i++) {
         var result = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+        if (endPositionBackprop(result)) break;
         var score = result[0];
         chess.move(result[1][0], result[1][1], result[1][2]);
         var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
-        chess.move(oppResult[1][0], oppResult[1][1]);
+        if (endPositionBackprop(oppResult)) break;
+        chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
         error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : score - prevScore);
         prevScore = score;
     }
 
     totalError += error;
+    console.log(totalError);
 
     if (iterSubCount >= NFEN_PER_ITER) {
         totalError = 0;
         iterSubCount = 0;
+        chess.fenToBoard(fen);
+        nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
         nn.backprop(totalError);
         iteration++;
+        console.log('backproped');
     }
 
     //write weights to after each epoch
     if (iteration >= EPOCH) {
-        nn.writeWeightsJSON('./NNWeights.json');
+        nn.writeWeightsJSON();
         iteration = 0;
+        console.log('saved weights');
     }
 });
+
+function endPositionBackprop(result) {
+    if (!result[1]) { //fen was stalemate or checkmate (score 0 or -1), good opportunity to backprop
+        if (result[0] === -Infinity) {
+            nn.backprop(nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures()) - 0);
+        } else {
+            nn.backprop(result[0] + 1);
+        }
+        return true;
+    }
+    return false;
+}
