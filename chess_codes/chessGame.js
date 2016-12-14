@@ -119,15 +119,17 @@ Chess.prototype = {
                 pf.push([this.normalizedCoord(p.loc[1])]);
                 pf.push([this.attackValue(p.loc)]);
                 pf.push([this.defendValue(p.loc)]);
-                if (p.sign === 'Q' || p.sign === 'R' || p.sign === 'B') {
-                    for (let dx = -1; dx <= 1; dx++) {
-                        for (let dy = -1; dy <= 1; dy++) {
-                            if (p.sign === 'Q' && (dx || dy)) {
-                                pf.push([this.calcMobility(p, [dx, dy])]);
-                            } else if (p.sign === 'R' && (!dx || !dy) && (dx || dy)) {
-                                pf.push([this.calcMobility(p, [dx, dy])]);
-                            } else if (p.sign === 'B' && dx && dy) {
-                                pf.push([this.calcMobility(p, [dx, dy])]);
+                if (i < 8) { //do not calc mobility for promoted pawns
+                    if (p.sign === 'Q' || p.sign === 'R' || p.sign === 'B') {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                if (p.sign === 'Q' && (dx || dy)) {
+                                    pf.push([this.calcMobility(p, [dx, dy])]);
+                                } else if (p.sign === 'R' && (!dx || !dy) && (dx || dy)) {
+                                    pf.push([this.calcMobility(p, [dx, dy])]);
+                                } else if (p.sign === 'B' && dx && dy) {
+                                    pf.push([this.calcMobility(p, [dx, dy])]);
+                                }
                             }
                         }
                     }

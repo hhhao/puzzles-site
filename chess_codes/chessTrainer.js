@@ -24,7 +24,7 @@ rl.on('line', function(fen) {
     iterSubCount++;
     //set board to fen
     chess.fenToBoard(fen);
-    console.log('initial fen: ', fen);
+    console.log('fen: ', fen);
 
     //make a random move
     var moves = chess.availableMoves();
@@ -42,7 +42,7 @@ rl.on('line', function(fen) {
         var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
         if (endPositionBackprop(oppResult)) break;
         chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
-        error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : score - prevScore);
+        error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
         prevScore = score;
     }
 
@@ -56,7 +56,7 @@ rl.on('line', function(fen) {
         nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
         nn.backprop(totalError);
         iteration++;
-        console.log('backproped');
+        console.log('backprop');
     }
 
     //write weights to after each epoch

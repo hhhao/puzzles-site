@@ -196,7 +196,7 @@ ChessNN.prototype = {
                         h2b: this.h2b
                        };
 
-        console.log('write weights h2b: ', dataObj.gb);
+        console.log('write weights, gb: ', dataObj.gb);
         fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
     }
 };
