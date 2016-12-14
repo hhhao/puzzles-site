@@ -6,14 +6,14 @@ var fs = require('fs');
 var readline = require('readline');
 var stream = require('stream');
 
-var instream = fs.createReadStream('../../tests/filetests/unique00.fen');
+var instream = fs.createReadStream('./unique00_shuffled.fen');
 var outstream = new stream();
 var rl = readline.createInterface(instream, outstream);
 
 var DEPTH = 2; //search depth parameter
 var LAMBDA = 0.7; //TDleaf parameter
-var SELF_PLAY_TURNS = 2; //Number of turns to play self
-var EPOCH = 5; //num of backprop iterations before write weights to file
+var SELF_PLAY_TURNS = 5; //Number of turns to play self
+var EPOCH = 10; //num of backprop iterations before write weights to file
 var NFEN_PER_ITER = 1; //num of fen to process before backprop
 
 
@@ -65,6 +65,11 @@ rl.on('line', function(fen) {
         iteration = 0;
         console.log('saved weights');
     }
+});
+
+
+rl.on('close', function() {
+    console.log('All positions read');
 });
 
 function endPositionBackprop(result) {
