@@ -63,9 +63,9 @@ io.on('connection', function(socket) {
     var ai = require('./chess_codes/chessMinimax.js');
     console.log('A user connected');
     socket.on('ready', function() {
-        var move = ai(chess.boardToFen(), 3, -Infinity, Infinity);
+        var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
         console.log(move);
-        chess.move(move[1][0], move[1][1], move[1][2]);
+        if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
         socket.emit('board', chess.getPositionObj());
 
     });
