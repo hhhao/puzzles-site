@@ -4,6 +4,15 @@ html
     title Chess
     link(rel="stylesheet", href="css/chessboard-0.3.0.css")
   body
+
+        .col-lg-4
+          ul.nav.nav-pills.nav-stacked#left-nav
+            li
+              a(href="#") Single Player
+            li
+              a(href="#") Multiplayer
+        .col-lg-8
+
     div(id="board1" style="width: 400px")
     script(src="/socket.io/socket.io.js")
     script(src="js/jquery-3.1.1.js")

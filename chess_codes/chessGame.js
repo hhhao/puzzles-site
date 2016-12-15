@@ -570,23 +570,7 @@ Chess.prototype = {
     },
 
     isCheckmate: function() {
-        if (this.isInCheck(this.current_move_side)) {
-            var currPieces = this.pieces[this.colorToIndex(this.current_move_side)];
-            for (let i = 0, n = currPieces.length; i < n; i++) {
-                var p = currPieces[i];
-                if (p.alive) {
-                    for (let x = 0; x < 8; x++) {
-                        for (let y = 0; y < 8; y++) {
-                            if (this.move(p.loc, [x, y], 'q')) {
-                                this.backOneMove('d');
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-            return true;
-        }
+        if (this.isInCheck(this.current_move_side) && !this.availableMoves().length) return true;
         return false;
     },
 

@@ -45,4 +45,4 @@ var dataObj = {gw: randMatrix(GHL, GFL),
               };
 
 //Uncommenting the following will destroy existing trained NN in NNWeights.json
-//fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
+fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
