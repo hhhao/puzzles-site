@@ -24,12 +24,13 @@ var linenum = 0;
 rl.on('line', function(fen) {
     linenum++;
 
-    if (linenum === 80) {
+    if (linenum === 2) {
     while (1) {
         iterSubCount++;
         //set board to fen
         chess.fenToBoard(fen);
         //console.log('fen: ', fen);
+
 
         //make a random move
         //var moves = chess.availableMoves();
@@ -41,10 +42,12 @@ rl.on('line', function(fen) {
         var prevScore;
         for (let i = 0; i < SELF_PLAY_TURNS; i++) {
             var result = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+            console.log("result: ", result[0]);
             if (endPositionBackprop(result)) break;
             var score = result[0];
             chess.move(result[1][0], result[1][1], result[1][2]);
             var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+            console.log("oppResult: ", oppResult[0]);
             if (endPositionBackprop(oppResult)) break;
             chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
             error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
@@ -57,7 +60,7 @@ rl.on('line', function(fen) {
         if (iterSubCount >= NFEN_PER_ITER) {
             chess.fenToBoard(fen);
             nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
-            nn.backprop(totalError);
+            nn.backprop(totalError/SELF_PLAY_TURNS);
             iteration++;
             console.log('backprop');
             totalError = 0;

@@ -1,31 +1,13 @@
 extends layout
 
 block content
-  nav.navbar.navbar-inverse
-    .container-fluid
-      .navbar-header
-        button(type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar")
-          span.icon-bar
-          span.icon-bar
-          span.icon-bar
-        a(class="navbar-brand" href="#") TN
-      .collapse.navbar-collapse#myNavbar
-        ul.nav.navbar-nav
-          li.active
-            a(href="/") Home
-          li
-            a(href="#") About
-        ul.nav.navbar-nav.navbar-right
-          li
-            a(href="#") Login
-              span.glyphicon.glyphicon-log-in
-
   .jumbotron
     .container.text-center
       h1= title
+      br
       p Machines Learning Games
 
-  .container-fluid.bg-3.text-center
+  .container-fluid.bg-3.text-center#games-grid
     .row
       .col-sm-3
         a(href="/chess")
@@ -39,9 +21,3 @@ block content
       .col-sm-3
         a(href="#")
           img(src="/img/sudoku_board.jpg" class="img-responsive" style="width:100%" alt="Sudoku")
-
-
-  //
-    .jumbotron
-      .container
-        h1.display-3.text-center= title

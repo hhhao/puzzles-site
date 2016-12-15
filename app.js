@@ -62,6 +62,7 @@ io.on('connection', function(socket) {
     var chess = new ChessGame();
     var ai = require('./chess_codes/chessMinimax.js');
     console.log('A user connected');
+    /*
     socket.on('ready', function() {
         var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
         console.log(move);
@@ -69,11 +70,12 @@ io.on('connection', function(socket) {
         socket.emit('board', chess.getPositionObj());
 
     });
+     */
     socket.on('drop piece', function(data) {
         chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
         io.emit('board', chess.getPositionObj());
-        var move = ai(chess.boardToFen(), 2);
-        chess.move(move[1][0], move[1][1], move[1][2]);
+        var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
+        if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
         io.emit('board', chess.getPositionObj());
     });
 });

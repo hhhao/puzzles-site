@@ -1,10 +1,28 @@
 doctype html
 html
   head
-    title= title
-    link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
-    link(rel="stylesheet" href="/css/style.css")
+    title Twisted Neurons
+    link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/css/style.css")
+    link(rel="stylesheet", href="css/chessboard-0.3.0.css")
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js")
     script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
   body
+    nav.navbar.navbar-inverse
+      .container-fluid
+        .navbar-header
+          button(type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar")
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a(class="navbar-brand" href="#") TN
+        .collapse.navbar-collapse#myNavbar
+          ul.nav.navbar-nav
+            li.active
+              a(href="/") Home
+            li
+              a(href="#") About
+          ul.nav.navbar-nav.navbar-right
+            li
+              a(href="#" ) Login #[span.glyphicon.glyphicon-log-in]
     block content

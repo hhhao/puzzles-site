@@ -12,7 +12,7 @@ var rl = readline.createInterface(instream, outstream);
 
 var DEPTH = 1; //search depth parameter
 var LAMBDA = 0.7; //TDleaf parameter
-var SELF_PLAY_TURNS = 5; //Number of turns to play self
+var SELF_PLAY_TURNS = 10; //Number of turns to play self
 var EPOCH = 10; //num of backprop iterations before write weights to file
 var NFEN_PER_ITER = 1; //num of fen to process before backprop
 
@@ -30,12 +30,7 @@ rl.on('line', function(fen) {
     var moves = chess.availableMoves();
     if (!moves.length) {
         var s = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
-        var a;
-        if (chess.isCheckmate()) {
-            a = -1;
-        } else {
-            a = 0;
-        }
+        var a = chess.isCheckmate() ? -1 : 0;
         nn.backprop(s-a);
     } else {
         var m = moves[Math.floor(Math.random()*moves.length)];
@@ -46,23 +41,25 @@ rl.on('line', function(fen) {
         var prevScore;
         for (let i = 0; i < SELF_PLAY_TURNS; i++) {
             var result = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+            console.log("result: ", result[0]);
             if (endPositionBackprop(result)) break;
             var score = result[0];
             chess.move(result[1][0], result[1][1], result[1][2]);
-            var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
-            if (endPositionBackprop(oppResult)) break;
-            chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
-            error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : score - prevScore);
+            //var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+            //console.log("oppResult: ", oppResult[0]);
+            //if (endPositionBackprop(oppResult)) break;
+            //chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
+            error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
             prevScore = score;
         }
 
         totalError += error;
-        console.log(totalError);
+        console.log("\nerror: ", totalError);
 
         if (iterSubCount >= NFEN_PER_ITER) {
             chess.fenToBoard(fen);
             nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
-            nn.backprop(totalError);
+            nn.backprop(totalError/SELF_PLAY_TURNS);
             iteration++;
             console.log('backprop');
             totalError = 0;

@@ -96,7 +96,7 @@ ChessNN.prototype = {
 
     //back propagation
     backprop: function(error) {
-        var dout = error < 0 ? -1 : (error > 0 ? 1 : 0);
+        var dout = error; //L2 loss, for L1 use error < 0 ? -1 : (error > 0 ? 1 : 0);
         var dh2s = dout * this.dtanh(this.h2s[0][0]);
         var dh2w = math.multiply(dh2s, math.transpose(this.h2));
         var dh2b = [[dh2s]];
@@ -237,7 +237,7 @@ function adadeltaUpdate(w, w_Eg2, w_ED2, dw) {
     for (let i = 0, rows = w.length; i < rows; i++) {
         for (let j = 0, cols = w[0].length; j < cols; j++) {
             w_Eg2[i][j] = decayRate * w_Eg2[i][j] + (1 - decayRate) * (dw[i][j] * dw[i][j]);
-            var D = -1 * 0.01 * (Math.sqrt(w_ED2[i][j] + eps) / Math.sqrt(w_Eg2[i][j] + eps)) * dw[i][j];
+            var D = -1 * (Math.sqrt(w_ED2[i][j] + eps) / Math.sqrt(w_Eg2[i][j] + eps)) * dw[i][j];
 
             w_ED2[i][j] = decayRate * w_ED2[i][j] + (1 - decayRate) * (D * D);
             w[i][j] += D;
