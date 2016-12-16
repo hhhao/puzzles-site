@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="css/chessboard-0.3.0.css" >
+        <link rel="stylesheet" href="css/style.css" >
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
@@ -23,7 +24,7 @@
                 </div>
                 <div class="collapse navbar-collapse" id="myNavbar">
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="#">Home</a></li>
+                        <li class="active"><a href="../">Home</a></li>
                         <li><a href="#">About</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
@@ -36,52 +37,104 @@
         <div class="g">
             <div class="row content">
                 <div class="col-sm-2 sidenav">
-                    <p><a href="#">Link</a></p>
-                    <p><a href="#">Link</a></p>
-                    <p><a href="#">Link</a></p>
                 </div>
-                <div class="col-sm-8 text-left">
-                    <h1>Welcome</h1>
-                    <div id="board1" style="width: 400px"></div>
-                    <hr>
-                    <h3>Test</h3>
-                    <p>Lorem ipsum...</p>
+                <div class="col-sm-8 text-center" id="cont">
+                    <div id="board1" style="width: 500px"></div>
                 </div>
-                <div class="col-sm-2 sidenav">
-                    <div class="well">
-                        <p>ADS</p>
-                    </div>
-                    <div class="well">
-                        <p>ADS</p>
-                    </div>
+                <div class="col-sm-2">
                 </div>
             </div>
         </div>
 
-        <footer class="container-fluid text-center">
-            <p>Footer Text</p>
+        <footer class="container-fluid text-center" id="footer">
+            <div id="buttons">
+                <idv class="butt">
+                </idv>
+                <idv class="butt">
+                    <button id="undo">Undo</button>
+                </idv>
+                <idv class="butt">
+                    <button id="redo">Redo</button>
+                </idv>
+                <idv class="butt">
+                    <button id="auto">Auto</button>
+                </idv>
+                <idv class="butt">
+                    <button id="resign">Resign</button>
+                </idv>
+                <idv class="butt">
+                </idv>
+            </div>
+
         </footer>
         <script src="/socket.io/socket.io.js"></script>
         <script src="js/jquery-3.1.1.js"></script>
         <script src="js/chessboard-0.3.0.js"></script>
         <script>
+         var playtype = 'single';
+         var playerColor = 'w';
+         var preventMove = false;
          $(document).ready(function() {
              var socket = io();
 
              socket.emit('ready');
              var onDrop = function(source, target, piece, newPos, oldPos, orientation) {
-                 socket.emit('drop piece', {from: source, to: target})
+                 socket.emit('drop piece', {from: source, to: target, playerColor: playerColor})
+                 if (source !== target) {
+                     preventMove = true;
+                 }
              }
+
+             var onDragStart = function(source, piece, position, orientation) {
+                 if (preventMove ||
+                     (orientation === 'white' && piece.search(/^w/) === -1) ||
+                     (orientation === 'black' && piece.search(/^b/) === -1)) {
+                     return false;
+                 }
+             }
+
              var board1 = ChessBoard('board1', {
                  draggable: true,
                  position: 'start',
                  dropOffBoard: 'snapback',
-                 onDrop: onDrop
+                 onDrop: onDrop,
+                 onDragStart: onDragStart
              });
-             socket.on('board', function(position) {
-                 board1.position(position);
+             socket.on('board', function(data) {
+                 board1.position(data.position);
+                 preventMove = data.preventMove;
                  socket.emit('ready');
              })
+
+             $('#undo').click(function() {
+                 socket.emit('undo');
+                 preventMove = true;
+             })
+
+             $('#redo').click(function() {
+                 socket.emit('redo');
+                 preventMove = true;
+             })
+
+             $('#auto').click(function() {
+                 if ($('#auto').html() === 'Auto') {
+                     $('#auto').html('Play');
+                     preventMove = true;
+                     socket.emit('auto');
+                 } else {
+                     $('#auto').html('Auto');
+                     socket.emit('stop auto');
+                 }
+
+                 preventMove = true;
+             })
+
+             $('#resign').click(function() {
+                 socket.emit('resign');
+                 preventMove = true;
+             })
+
+
          });
         </script>
     </body>

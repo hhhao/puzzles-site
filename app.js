@@ -18,6 +18,7 @@ var io = require('socket.io')(server);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+global.appRoot = path.resolve(__dirname);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -49,14 +50,6 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-/*
-app.set('port', process.env.PORT || 3000);
-
-server = app.listen(app.get('port'), function () {
-    debug('Express server listening on port ' + server.address().port);
-});
-*/
-
 io.on('connection', function(socket) {
     var ChessGame = require('./chess_codes/chessGame.js');
     var chess = new ChessGame();
@@ -72,12 +65,60 @@ io.on('connection', function(socket) {
     });
      */
     socket.on('drop piece', function(data) {
-        chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
-        io.emit('board', chess.getPositionObj());
-        var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
-        if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
-        io.emit('board', chess.getPositionObj());
+        var playerMove = chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
+        var doPreventMove = playerMove ? true : false;
+        io.emit('board', {position: chess.getPositionObj(), preventMove: doPreventMove});
+
+        if (data.playerColor !== chess.current_move_side) {
+            var move = ai(chess.boardToFen(), 1, -Infinity, Infinity);
+            if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
+            io.emit('board', {position: chess.getPositionObj(), preventMove: false});
+        }
     });
+
+    socket.on('undo', function() {
+        chess.backOneMove();
+        io.emit('board', {position: chess.getPositionObj(), preventMove: true});
+        setTimeout(function() {
+            chess.backOneMove();
+            io.emit('board', {position: chess.getPositionObj(), preventMove: false});
+        }.bind(this), 300);
+    });
+
+    socket.on('redo', function() {
+        chess.forwardOneMove();
+        io.emit('board', {position: chess.getPositionObj(), preventMove: true});
+        setTimeout(function() {
+            chess.forwardOneMove();
+            io.emit('board', {position: chess.getPositionObj(), preventMove: false});
+        }.bind(this), 300);
+    });
+
+    var autoplayInterval;
+    socket.on('auto', function() {
+        autoplayInterval = setInterval(function() {
+            for (let i = 0; i < 2; i++) {
+                var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
+                if (move[1]) {
+                    chess.move(move[1][0], move[1][1], move[1][2]);
+                    io.emit('board', {position: chess.getPositionObj(), preventMove: true});
+                } else {
+                    clearInterval(autoplayInterval);
+                    io.emit('board', {position: chess.getPositionObj(), preventMove: false});
+                }
+            }
+        }.bind(this), 300);
+    }.bind(this));
+
+    socket.on('stop auto', function() {
+        clearInterval(autoplayInterval);
+        io.emit('board', {position: chess.getPositionObj(), preventMove: false});
+    }.bind(this));
+
+    socket.on('resign', function() {
+        chess.resign = true;
+    });
+
 });
 
 server.listen(3000, function() {
