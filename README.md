@@ -5,6 +5,7 @@
 ## Chess
 
 The chess program is built from scratch in Javascript. It has 4 main components:
+
 1. Game logic (chessGame.js)
 2. Artificial neural network (chessNN.js)
 3. Minimax search (chessMinimax.js)
