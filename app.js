@@ -70,7 +70,7 @@ io.on('connection', function(socket) {
         io.emit('board', {position: chess.getPositionObj(), preventMove: doPreventMove});
 
         if (data.playerColor !== chess.current_move_side) {
-            var move = ai(chess.boardToFen(), 1, -Infinity, Infinity);
+            var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
             if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
             io.emit('board', {position: chess.getPositionObj(), preventMove: false});
         }
