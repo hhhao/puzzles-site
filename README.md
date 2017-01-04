@@ -1,8 +1,8 @@
-* Twisted Neurons
+# Twisted Neurons
 
-Web app showcasing boardgames with AI that's build with machine learning techniques such as artificial neural network
+### Web app showcasing boardgames with AI that's build with machine learning techniques such as artificial neural network
 
-** Chess
+## Chess
 
 The chess program is built from scratch in Javascript. It has 4 main components:
 1. Game logic (chessGame.js)
