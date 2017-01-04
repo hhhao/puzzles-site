@@ -1,4 +1,5 @@
 * Twisted Neurons
+
 *** Web app showcasing boardgames with AI that's build with machine learning techniques such as artificial neural network
 
 ** Chess
