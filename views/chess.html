@@ -36,7 +36,10 @@
 
         <div class="g">
             <div class="row content">
-                <div class="col-sm-2 sidenav">
+                <div class="col-sm-2 sidenav text-center">
+                    <p id="aiThinking">
+                        Your Turn
+                    </p>
                 </div>
                 <div class="col-sm-8 text-center" id="cont">
                     <div id="board1" style="width: 500px"></div>
@@ -106,6 +109,14 @@
                  socket.emit('ready');
              })
 
+             socket.on('ai thinking', function() {
+                 $('#aiThinking').html('Computer Is Thinking...');
+             });
+
+             socket.on('ai done thinking', function() {
+                 $('#aiThinking').html('Your Turn');
+             });
+
              $('#undo').click(function() {
                  socket.emit('undo');
                  preventMove = true;
@@ -133,7 +144,6 @@
                  socket.emit('resign');
                  preventMove = true;
              })
-
 
          });
         </script>

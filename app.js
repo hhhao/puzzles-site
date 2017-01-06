@@ -55,16 +55,8 @@ io.on('connection', function(socket) {
     var chess = new ChessGame();
     var ai = require('./chess_codes/chessMinimax.js');
     console.log('A user connected');
-    /*
-    socket.on('ready', function() {
-        var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
-        console.log(move);
-        if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
-        socket.emit('board', chess.getPositionObj());
-
-    });
-     */
     socket.on('drop piece', function(data) {
+        socket.emit('ai thinking');
         var playerMove = chess.move(chess.convPosFromStr(data.from), chess.convPosFromStr(data.to), null);
         var doPreventMove = playerMove ? true : false;
         io.emit('board', {position: chess.getPositionObj(), preventMove: doPreventMove});
@@ -74,6 +66,7 @@ io.on('connection', function(socket) {
             if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
             io.emit('board', {position: chess.getPositionObj(), preventMove: false});
         }
+        socket.emit('ai done thinking');
     });
 
     socket.on('undo', function() {
@@ -96,6 +89,7 @@ io.on('connection', function(socket) {
 
     var autoplayInterval;
     socket.on('auto', function() {
+        socket.emit('ai thinking');
         autoplayInterval = setInterval(function() {
             for (let i = 0; i < 2; i++) {
                 var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
@@ -103,6 +97,7 @@ io.on('connection', function(socket) {
                     chess.move(move[1][0], move[1][1], move[1][2]);
                     io.emit('board', {position: chess.getPositionObj(), preventMove: true});
                 } else {
+                    socket.emit('ai done thinking');
                     clearInterval(autoplayInterval);
                     io.emit('board', {position: chess.getPositionObj(), preventMove: false});
                 }
@@ -111,6 +106,7 @@ io.on('connection', function(socket) {
     }.bind(this));
 
     socket.on('stop auto', function() {
+        socket.emit('ai done thinking');
         clearInterval(autoplayInterval);
         io.emit('board', {position: chess.getPositionObj(), preventMove: false});
     }.bind(this));

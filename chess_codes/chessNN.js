@@ -143,7 +143,7 @@ ChessNN.prototype = {
         var dpw = math.multiply(dps, math.transpose(this.pf));
         var dsw = math.multiply(dss, math.transpose(this.sf));
 
-        //TODO: update weights and biases using AdaDelta
+        //update weights and biases using AdaDelta
         adadeltaUpdate(this.gw, this.gw_Eg2, this.gw_ED2, dgw);
         adadeltaUpdate(this.gb, this.gb_Eg2, this.gb_ED2, dgb);
         adadeltaUpdate(this.ghw, this.ghw_Eg2, this.ghw_ED2, dghw);
