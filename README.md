@@ -32,5 +32,5 @@ The chess program is built from scratch in Javascript. It has 4 main components:
 1. Matthew Lai. [Giraffe: Using Deep Reinforcement Learning to Play Chess](https://arxiv.org/pdf/1509.01549.pdf)
 2. Matthew D. Zeiler. [ADADELTA: AN ADAPTIVE LEARNING RATE METHOD](https://arxiv.org/pdf/1212.5701v1.pdf)
 3. Jonathan Baxter, Andrew Tridgell and Lex Weaver. [TDLeaf(λ): Combining Temporal Difference Learning with Game-Tree Search.](https://arxiv.org/pdf/cs/9901001v1.pdf)
-4. Warren S. Sarle. [Neural Network FAQ](ftp://ftp.sas.com/pub/neural/FAQ.html)
+4. Warren S. Sarle. Neural Network FAQ (ftp://ftp.sas.com/pub/neural/FAQ.html)
 5. Fei-Fei Li, Andrej Karpathy and Justin Johnson. [CS231n: Convolutional Neural Networks for Visual Recognition](http://cs231n.stanford.edu/)
