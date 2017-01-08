@@ -9,6 +9,13 @@ var decayRate = 0.95; //Decay rate constant for AdaDelta
 var eps = 0.000001; //Conditioning constant for AdaDelta
 
 
+/*
+ Notes on neural network internals variable names:
+ g, p, s stand for general, positional, and squares respectively
+ w, b stand for weight, bias respectively
+ Eg2 and ED2 are root mean squares for gradient and change in AdaDelta, respectively
+ h denotes 1st hidden layer, h2 denotes 2nd hidden layer
+ */
 function ChessNN() {
     this.gw = weights.gw;
     this.gw_Eg2 = adadeltaParams.gw_Eg2;

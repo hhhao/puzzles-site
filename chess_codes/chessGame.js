@@ -10,6 +10,7 @@ function Chess() {
     for (let c = 0; c <= 1; c++) {
         this.pieces[c] = [new Rook(), new Knight(), new Bishop(), new Queen(), new King(), new Bishop(), new Knight(), new Rook(), new Pawn(0), new Pawn(1), new Pawn(2), new Pawn(3), new Pawn(4), new Pawn(5), new Pawn(6), new Pawn(7)];
     }
+    //put pieces on board
     for (let k = 0; k < 8; k++) {
         for (let i = 0; i <= 1; i++) {
             var color = i === 0 ? 'w' : 'b';
@@ -27,13 +28,14 @@ function Chess() {
     this.dead_pieces = [[], []];
     this.promoted_pieces = [[], []];
     this.resign = false;
-    this.enpassantSqr = null;
+    this.enpassantSqr = null; //stores last enpassant square, if applicable
     this.fenCastleRights = [true, true, true, true]; //[white king-side, w queen-side, b king-side, b queen-side]
-    this.pieceValues = {K: 1000, Q: 9, R: 5, B: 3, N: 3, P: 1};
+    this.pieceValues = {K: 1000, Q: 9, R: 5, B: 3, N: 3, P: 1}; //for calculating attack and defend maps
 }
 
 Chess.prototype = {
 
+    //General Features: moves side, castle rights, piece numbers
     gfeatures: function() {
         var gf = [];
         var ind = 0;

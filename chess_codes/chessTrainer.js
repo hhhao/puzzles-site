@@ -26,7 +26,7 @@ rl.on('line', function(fen) {
     chess.fenToBoard(fen);
     console.log('fen: ', fen);
 
-    //make a random move or backprop if no moves
+    //increase position variability by making a random move or backprop if no moves
     var moves = chess.availableMoves();
     if (!moves.length) {
         var s = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());

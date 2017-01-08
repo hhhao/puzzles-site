@@ -25,18 +25,10 @@ rl.on('line', function(fen) {
     linenum++;
 
     if (linenum === 2) {
-    while (1) {
+    while (1) { //For testing 1 postion only
         iterSubCount++;
         //set board to fen
         chess.fenToBoard(fen);
-        //console.log('fen: ', fen);
-
-
-        //make a random move
-        //var moves = chess.availableMoves();
-        //var m = moves[Math.floor(Math.random()*moves.length)];
-        //chess.move(m[0], m[1], m[2]);
-
         //TDleaf the fen postion for 12 moves, sum error
         var error = 0;
         var prevScore;
