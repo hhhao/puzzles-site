@@ -1,3 +1,7 @@
+/*
+ Chess Minimax Search
+ */
+
 var nn = new (require('./chessNN.js'))();
 var chess = new (require('./chessGame.js'))();
 

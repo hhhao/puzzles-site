@@ -1,3 +1,7 @@
+/*
+ Tester For Chess Trainer
+ */
+
 var minimax = require('./chessMinimax.js');
 var nn = new (require('./chessNN.js'))();
 var chess = new (require('./chessGame.js'))();

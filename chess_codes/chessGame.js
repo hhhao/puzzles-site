@@ -36,6 +36,7 @@ function Chess() {
 Chess.prototype = {
 
     //General Features: moves side, castle rights, piece numbers
+    //used by the neural network
     gfeatures: function() {
         var gf = [];
         var ind = 0;
@@ -65,6 +66,7 @@ Chess.prototype = {
         return (coord - 3.5)/3.5;
     },
 
+    //attack value on a square. Lower attacker worth gives higher value
     attackValue: function(sqr) {
         var attackers = this.pieces[this.colorToIndex(this.oppositeColor(this.current_move_side))];
         var lowest = null, lowestVal = Infinity;
@@ -80,6 +82,7 @@ Chess.prototype = {
         return 1/lowestVal;
     },
 
+    //defence value on a square. Lower defender worth gives higher value
     defendValue: function(sqr) {
         var defenders = this.pieces[this.colorToIndex(this.current_move_side)];
         var lowest = null, lowestVal = Infinity;
@@ -96,6 +99,7 @@ Chess.prototype = {
 
     },
 
+    //calculates numbers of steps the piece can take in direction dir
     calcMobility: function(piece, dir) {
         var steps = 0;
         //max steps in any direction is 7
@@ -110,6 +114,8 @@ Chess.prototype = {
         return steps/7;
     },
 
+    //piece features such as position, been alive, mobility, defence and attack values on the piece
+    //used by the neural network
     pfeatures: function() {
         var pf = [];
         for (let c = 0; c <= 1; c++) {
@@ -141,6 +147,8 @@ Chess.prototype = {
         return pf;
     },
 
+    //square features, attack and defence maps
+    //used by neural network
     sfeatures: function() {
         var sf = [];
         for (let x = 0; x < 8; x++) {
@@ -152,6 +160,7 @@ Chess.prototype = {
         return sf;
     },
 
+    //Convert board state to FEN notation
     boardToFen: function() {
         function fenPSign(p) {
             if (p.color === 'w') {
@@ -203,6 +212,7 @@ Chess.prototype = {
         return fen;
     },
 
+    //set board according to FEN
     fenToBoard: function(fen) {
         //Take pieces off board (nullify squares and turn pieces dead)
         for (let x = 0; x < 8; x++) {
@@ -273,6 +283,7 @@ Chess.prototype = {
         }
     },
 
+    //return array of currently available moves
     availableMoves: function() {
         var moves = [];
         var promoChoices = 'qrbn';

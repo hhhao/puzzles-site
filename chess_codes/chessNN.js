@@ -1,3 +1,7 @@
+/*
+ Chess Deep Neural Network
+*/
+
 var math = require('mathjs');
 var fs = require("fs");
 
@@ -15,6 +19,8 @@ var eps = 0.000001; //Conditioning constant for AdaDelta
  w, b stand for weight, bias respectively
  Eg2 and ED2 are root mean squares for gradient and change in AdaDelta, respectively
  h denotes 1st hidden layer, h2 denotes 2nd hidden layer
+
+ Graphical representation of the NN architecture will be available on GitHub
  */
 function ChessNN() {
     this.gw = weights.gw;
