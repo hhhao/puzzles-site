@@ -1,4 +1,12 @@
+/*
+ Sudoku Solver
+ Takes puzzle argument as two dimentional array of intergers.
+ 0 signifies empty space.
+ */
+
 function sudoku(puzzle) {
+
+    // Make a 2 dimentional array of strings containing all options at each square
     function init(pz) {
         var newP = [];
         for (var r = 0; r < 9; r++) {
@@ -41,6 +49,8 @@ function sudoku(puzzle) {
         }
         return newP;
     }
+
+    // Find the square that has the least choices
     function findMostRestrictedSquare(p) {
         var MRSloc = [], MRlen = 10;
         for (var r = 0; r < 9; r++) {
@@ -54,6 +64,8 @@ function sudoku(puzzle) {
         }
         return MRSloc;
     }
+
+    // Copy the puzzle array and return the new array
     function copyPuzzle(p) {
         var newP = [];
         for (var row  = 0; row < 9; row++) {
@@ -64,6 +76,8 @@ function sudoku(puzzle) {
         }
         return newP;
     }
+
+    // Delete the taken number from row, column and quadrant
     function propagateRestraints(coord, p) {
         var dupIndex;
         for (var col = 0; col < 9; col++) {
@@ -91,6 +105,8 @@ function sudoku(puzzle) {
         }
         return true;
     }
+
+    // Convert the string to int
     function convToNums(p) {
         for (var r = 0; r < 9; r++) {
             for (var c = 0; c < 9; c++) {
@@ -99,6 +115,8 @@ function sudoku(puzzle) {
         }
         return p;
     }
+
+    // Recursively solve the sudoku, backtrack if necessary
     function sudokuRecursive(p) {
         var mrs = findMostRestrictedSquare(p);
         if (!mrs.length) return convToNums(p);
@@ -113,6 +131,7 @@ function sudoku(puzzle) {
         }
         return false;
     }
+
     return sudokuRecursive(init(puzzle));
 }
 
