@@ -11,6 +11,7 @@ OR
 With npm and node.js installed, clone the git repo then while in the app directory run
 
 ```
+npm install
 npm start
 ```
 
