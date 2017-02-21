@@ -9,7 +9,7 @@ var chess = new (require('./chessGame.js'))();
 function minimaxTopLevelWithMove(fen, depth) {
     var result = [-Infinity, null];
     var alpha = -Infinity;
-    var beta = Inifinity;
+    var beta = Infinity;
     chess.fenToBoard(fen);
     var moves = chess.availableMoves();
     if (depth <= 0 || !moves.length) {
