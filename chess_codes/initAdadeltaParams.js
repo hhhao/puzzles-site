@@ -1,3 +1,8 @@
+/*
+ Initializes parameters for Adadelta
+ Uncomment last line to use
+ */
+
 var fs = require('fs');
 
 var GFL = 15;
@@ -59,4 +64,4 @@ var dataObj = {
 };
 
 //Uncomment to reset Adadelta params to 0
-fs.writeFileSync('./adadelta_params.json', JSON.stringify(dataObj));
+//fs.writeFileSync('./adadelta_params.json', JSON.stringify(dataObj));

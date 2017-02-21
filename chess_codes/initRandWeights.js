@@ -1,7 +1,8 @@
 /*
- Initializes neural net weight with random values
+ Initializes neural net weight with random small values for better first time training
  DO NOT use on main weights file if trained!
  Will OVERWRITE target file weights
+ Uncomment the last line to use
  */
 
 var fs = require('fs');
@@ -45,4 +46,4 @@ var dataObj = {gw: randMatrix(GHL, GFL),
               };
 
 //Uncommenting the following will destroy existing trained NN in NNWeights.json
-fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
+//fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
