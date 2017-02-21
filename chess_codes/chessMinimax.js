@@ -5,7 +5,7 @@
 var nn = new (require('./chessNN.js'))();
 var chess = new (require('./chessGame.js'))();
 
-//TODO implement alpha-beta
+//TODO implement tree reordering
 function minimaxTopLevelWithMove(fen, depth) {
     var result = [-Infinity, null];
     var alpha = -Infinity;
