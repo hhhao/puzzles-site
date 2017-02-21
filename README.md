@@ -15,6 +15,8 @@ npm install
 npm start
 ```
 
+Then open browser to localhost:3000
+
 ## Chess
 
 The chess program is built from scratch in Javascript. It has 4 main components:
@@ -27,6 +29,10 @@ The chess program is built from scratch in Javascript. It has 4 main components:
 	* The minimax search component is just a simple minimax search. Optimization techniques will be added to increase the speed of the search algorithm.
 4. Trainer for the ANN (chessTrainer.js)
 	* The trainer component reads chess FEN positions from file and trains the neural network using standard backpropagation, where the loss is determined using TDLeaf algorithm. It is trained through reinforcement learning by having the program play itself for a number of moves, each time after reading a unique chess position from file.
+
+## Limitations and Areas to Improve
+
+Currently the minimax search is quite slow even with alpha-beta pruning implemented. Thus the program is only able to look ahead 2 to 3 moves within 'reasonable' waiting time.
 
 ## References and Resources
 
