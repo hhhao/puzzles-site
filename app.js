@@ -54,6 +54,7 @@ io.on('connection', function(socket) {
     var ChessGame = require('./chess_codes/chessGame.js');
     var chess = new ChessGame();
     var ai = require('./chess_codes/chessMinimax.js');
+    const searchDepth = 3;
     console.log('A user connected');
     socket.on('drop piece', function(data) {
         socket.emit('ai thinking');
@@ -62,7 +63,7 @@ io.on('connection', function(socket) {
         io.emit('board', {position: chess.getPositionObj(), preventMove: doPreventMove});
 
         if (data.playerColor !== chess.current_move_side) {
-            var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
+            var move = ai(chess.boardToFen(), searchDepth, -Infinity, Infinity);
             if (move[1]) chess.move(move[1][0], move[1][1], move[1][2]);
             io.emit('board', {position: chess.getPositionObj(), preventMove: false});
         }
@@ -92,7 +93,7 @@ io.on('connection', function(socket) {
         socket.emit('ai thinking');
         autoplayInterval = setInterval(function() {
             for (let i = 0; i < 2; i++) {
-                var move = ai(chess.boardToFen(), 2, -Infinity, Infinity);
+                var move = ai(chess.boardToFen(), searchDepth, -Infinity, Infinity);
                 if (move[1]) {
                     chess.move(move[1][0], move[1][1], move[1][2]);
                     io.emit('board', {position: chess.getPositionObj(), preventMove: true});
