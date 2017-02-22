@@ -10,15 +10,15 @@ var fs = require('fs');
 var readline = require('readline');
 var stream = require('stream');
 
-var instream = fs.createReadStream('./unique00_shuffled.fen');
+var instream = fs.createReadStream('../../chess-position-files/unique00.fen');
 var outstream = new stream();
 var rl = readline.createInterface(instream, outstream);
 
-var DEPTH = 1; //search depth parameter
+var DEPTH = 2; //search depth parameter
 var LAMBDA = 0.7; //TDleaf parameter
 var SELF_PLAY_TURNS = 10; //Number of turns to play self
 var EPOCH = 10; //num of backprop iterations before write weights to file
-var NFEN_PER_ITER = 1; //num of fen to process before backprop
+var NFEN_PER_ITER = 10; //num of fen to process before backprop
 
 
 var iteration = 0; //denotes iteration num of current epoch
@@ -49,10 +49,6 @@ rl.on('line', function(fen) {
             if (endPositionBackprop(result)) break;
             var score = result[0];
             chess.move(result[1][0], result[1][1], result[1][2]);
-            //var oppResult = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
-            //console.log("oppResult: ", oppResult[0]);
-            //if (endPositionBackprop(oppResult)) break;
-            //chess.move(oppResult[1][0], oppResult[1][1], oppResult[1][2]);
             error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
             prevScore = score;
         }
