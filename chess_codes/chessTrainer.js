@@ -28,7 +28,7 @@ rl.on('line', function(fen) {
     iterSubCount++;
     //set board to fen
     chess.fenToBoard(fen);
-    console.log('fen: ', fen);
+    console.log("\nfen: ", fen);
 
     //increase position variability by making a random move or backprop if no moves
     let moves = chess.availableMoves();
@@ -44,7 +44,7 @@ rl.on('line', function(fen) {
         let error = 0;
         let prevScore;
         for (let i = 0; i < SELF_PLAY_TURNS; i++) {
-            let result = minimax(chess.boardToFen(), DEPTH);
+            let result = minimax(nn, chess.boardToFen(), DEPTH);
             console.log("result: ", result[0]);
             if (endPositionBackprop(result)) break; // Game ended before self play end
             let score = result[0];
