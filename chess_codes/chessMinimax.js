@@ -2,25 +2,24 @@
  Chess Minimax Search
  */
 
-var nn = new (require('./chessNN.js'))();
-var chess = new (require('./chessGame.js'))();
+let chess = new (require('./chessGame.js'))();
 
 //TODO implement tree reordering
-function minimaxTopLevelWithMove(fen, depth) {
+function minimaxTopLevelWithMove(nn, fen, depth) {
     chess.fenToBoard(fen);
-    var isTopMaxSide = chess.current_move_side === 'w' ? true : false;
-    var result = [(isTopMaxSide ? -Infinity : Infinity), null];
-    var alpha = -Infinity;
-    var beta = Infinity;
-    var moves = chess.availableMoves();
+    let isTopMaxSide = chess.current_move_side === 'w' ? true : false;
+    let result = [(isTopMaxSide ? -Infinity : Infinity), null];
+    let alpha = -Infinity;
+    let beta = Infinity;
+    let moves = chess.availableMoves();
     if (depth <= 0 || !moves.length) {
         result[0] = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
         return result;
     }
     for (let i = 0, n = moves.length; i < n; i++) {
-        var m = moves[i];
+        let m = moves[i];
         chess.move(m[0], m[1], m[2]);
-        var subScore = minimax(chess.boardToFen(), depth-1, alpha, beta, !isTopMaxSide);
+        let subScore = minimax(nn, chess.boardToFen(), depth-1, alpha, beta, !isTopMaxSide);
         if (isTopMaxSide && subScore > result[0]) {
             result[0] = subScore;
             result[1] = m;
@@ -35,17 +34,17 @@ function minimaxTopLevelWithMove(fen, depth) {
     return result;
 }
 
-function minimax(fen, depth, alpha, beta, isMaxSide) {
+function minimax(nn, fen, depth, alpha, beta, isMaxSide) {
     chess.fenToBoard(fen);
-    var moves = chess.availableMoves();
+    let moves = chess.availableMoves();
     if (depth <= 0 || !moves.length) {
         return nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
     }
-    var score = isMaxSide ? -Infinity : Infinity;
+    let score = isMaxSide ? -Infinity : Infinity;
     for (let i = 0, n = moves.length; i < n; i++) {
-        var m = moves[i];
+        let m = moves[i];
         chess.move(m[0], m[1], m[2]);
-        var subScore = minimax(chess.boardToFen(), depth-1, alpha, beta, !isMaxSide);
+        let subScore = minimax(nn, chess.boardToFen(), depth-1, alpha, beta, !isMaxSide);
         if (isMaxSide && subScore > score) {
             score = subScore;
             alpha = subScore;
