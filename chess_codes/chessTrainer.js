@@ -2,28 +2,28 @@
  Chess Trainer
  */
 
-var minimax = require('./chessMinimax.js');
-var nn = new (require('./chessNN.js'))();
-var chess = new (require('./chessGame.js'))();
+let minimax = require('./chessMinimax.js');
+let nn = new (require('./chessNN.js'))();
+let chess = new (require('./chessGame.js'))();
 
-var fs = require('fs');
-var readline = require('readline');
-var stream = require('stream');
+let fs = require('fs');
+let readline = require('readline');
+let stream = require('stream');
 
-var instream = fs.createReadStream('../../chess-position-files/unique00.fen');
-var outstream = new stream();
-var rl = readline.createInterface(instream, outstream);
+let instream = fs.createReadStream('../../chess-position-files/unique00.fen');
+let outstream = new stream();
+let rl = readline.createInterface(instream, outstream);
 
-var DEPTH = 2; //search depth parameter
-var LAMBDA = 0.7; //TDleaf parameter
-var SELF_PLAY_TURNS = 10; //Number of turns to play self
-var EPOCH = 10; //num of backprop iterations before write weights to file
-var NFEN_PER_ITER = 10; //num of fen to process before backprop
+const DEPTH = 2; //search depth parameter
+const LAMBDA = 0.7; //TDleaf parameter
+const SELF_PLAY_TURNS = 10; //Number of turns to play self
+const EPOCH = 10; //num of backprop iterations before write weights to file
+const NFEN_PER_ITER = 10; //num of fen to process before backprop
 
 
-var iteration = 0; //denotes iteration num of current epoch
-var iterSubCount = 0; //num of fen read for current iteration
-var totalError = 0;
+let iteration = 0; //denotes iteration num of current epoch
+let iterSubCount = 0; //num of fen read for current iteration
+let totalError = 0;
 rl.on('line', function(fen) {
     iterSubCount++;
     //set board to fen
@@ -31,30 +31,30 @@ rl.on('line', function(fen) {
     console.log('fen: ', fen);
 
     //increase position variability by making a random move or backprop if no moves
-    var moves = chess.availableMoves();
+    let moves = chess.availableMoves();
     if (!moves.length) {
-        var s = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
-        var a = chess.isCheckmate() ? -1 : 0;
-        nn.backprop(s-a);
+        let score = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
+        let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
+        nn.backprop(score-actual);
     } else {
-        var m = moves[Math.floor(Math.random()*moves.length)];
+        let m = moves[Math.floor(Math.random()*moves.length)];
         chess.move(m[0], m[1], m[2]);
 
         //TDleaf the fen postion for number of moves, sum error
-        var error = 0;
-        var prevScore;
+        let error = 0;
+        let prevScore;
         for (let i = 0; i < SELF_PLAY_TURNS; i++) {
-            var result = minimax(chess.boardToFen(), DEPTH, -Infinity, Infinity);
+            let result = minimax(chess.boardToFen(), DEPTH);
             console.log("result: ", result[0]);
-            if (endPositionBackprop(result)) break;
-            var score = result[0];
+            if (endPositionBackprop(result)) break; // Game ended before self play end
+            let score = result[0];
             chess.move(result[1][0], result[1][1], result[1][2]);
             error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
             prevScore = score;
         }
 
         totalError += error;
-        console.log("\nerror: ", totalError);
+        console.log("error: ", totalError);
 
         if (iterSubCount >= NFEN_PER_ITER) {
             chess.fenToBoard(fen);
@@ -82,12 +82,14 @@ rl.on('close', function() {
 });
 
 function endPositionBackprop(result) {
-    if (!result[1]) { //fen was stalemate or checkmate (score 0 or -1), good opportunity to backprop
-        if (result[0] === -Infinity) {
-            nn.backprop(nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures()) - 0);
-        } else {
-            nn.backprop(result[0] + 1);
-        }
+    if (!result[1]) { //fen was stalemate or checkmate (score 0 or -1 or 1), good opportunity to backprop
+        let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
+        nn.backprop(result[0]-actual);
+
+        // Print some information:
+        console.log(actual === 0 ? 'Draw, 0' : (actual === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
+        chess.drawBoard();
+
         return true;
     }
     return false;
