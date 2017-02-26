@@ -13,9 +13,9 @@ function Chess() {
     //put pieces on board
     for (let k = 0; k < 8; k++) {
         for (let i = 0; i <= 1; i++) {
-            var color = i === 0 ? 'w' : 'b';
-            var y_cord0 = i === 0 ? 0 : 7;
-            var y_cord1 = y_cord0 - 2 * i + 1;
+            let color = i === 0 ? 'w' : 'b';
+            let y_cord0 = i === 0 ? 0 : 7;
+            let y_cord1 = y_cord0 - 2 * i + 1;
             this.pieces[i][k].color = color;
             this.pieces[i][k].loc = [k, y_cord0];
             this.board[k][y_cord0] = this.pieces[i][k];
@@ -38,17 +38,17 @@ Chess.prototype = {
     //General Features: moves side, castle rights, piece numbers
     //used by the neural network
     gfeatures: function() {
-        var gf = [];
-        var ind = 0;
+        let gf = [];
+        let ind = 0;
         gf[ind++] = [this.current_move_side === 'w' ? 1 : -1];
         for (let i = 0, n = this.fenCastleRights.length; i < n; i++) {
             gf[ind++] = [this.fenCastleRights[i] ? 1 : -1];
         }
-        var pOrder = [['Q', 2], ['R', 2], ['B', 2], ['N', 2], ['P', 8]];
+        let pOrder = [['Q', 2], ['R', 2], ['B', 2], ['N', 2], ['P', 8]];
         for (let c = 0; c <= 1; c++) {
-            var pieces = this.pieces[c];
+            let pieces = this.pieces[c];
             for (let ord = 0, ordn = pOrder.length; ord < ordn; ord++) {
-                var sign = pOrder[ord][0];
+                let sign = pOrder[ord][0];
                 gf[ind] = [0];
                 for (let p = 0, pn = pieces.length; p < pn; p++) {
                     if (pieces[p].sign === sign && pieces[p].alive) {
@@ -68,10 +68,10 @@ Chess.prototype = {
 
     //attack value on a square. Lower attacker worth gives higher value
     attackValue: function(sqr) {
-        var attackers = this.pieces[this.colorToIndex(this.oppositeColor(this.current_move_side))];
-        var lowest = null, lowestVal = Infinity;
+        let attackers = this.pieces[this.colorToIndex(this.oppositeColor(this.current_move_side))];
+        let lowest = null, lowestVal = Infinity;
         for (let i = 0, n = attackers.length; i < n; i++) {
-            var a = attackers[i];
+            let a = attackers[i];
             if (a.alive &&
                 this.isLegalMove(a.sign, a.loc, sqr) &&
                 this.pieceValues[a.sign] < lowestVal) {
@@ -84,10 +84,10 @@ Chess.prototype = {
 
     //defence value on a square. Lower defender worth gives higher value
     defendValue: function(sqr) {
-        var defenders = this.pieces[this.colorToIndex(this.current_move_side)];
-        var lowest = null, lowestVal = Infinity;
+        let defenders = this.pieces[this.colorToIndex(this.current_move_side)];
+        let lowest = null, lowestVal = Infinity;
         for (let i = 0, n = defenders.length; i < n; i++) {
-            var d = defenders[i];
+            let d = defenders[i];
             if (d.alive &&
                 this.isLegalMove(d.sign, d.loc, sqr, true) &&
                 this.pieceValues[d.sign] < lowestVal) {
@@ -101,10 +101,10 @@ Chess.prototype = {
 
     //calculates numbers of steps the piece can take in direction dir
     calcMobility: function(piece, dir) {
-        var steps = 0;
+        let steps = 0;
         //max steps in any direction is 7
         for (let i = 1; i < 8; i++) {
-            var dest = [piece.loc[0] + i * dir[0], piece.loc[1] + i * dir[1]];
+            let dest = [piece.loc[0] + i * dir[0], piece.loc[1] + i * dir[1]];
             if (this.isLegalMove(piece.sign, piece.loc, dest)) {
                 steps++;
             } else {
@@ -117,11 +117,11 @@ Chess.prototype = {
     //piece features such as position, been alive, mobility, defence and attack values on the piece
     //used by the neural network
     pfeatures: function() {
-        var pf = [];
+        let pf = [];
         for (let c = 0; c <= 1; c++) {
-            var pieces = this.pieces[c];
+            let pieces = this.pieces[c];
             for (let i = 0, n = pieces.length; i < n; i++) {
-                var p = pieces[i];
+                let p = pieces[i];
                 pf.push([p.alive ? 1 : -1]);
                 pf.push([this.normalizedCoord(p.loc[0])]);
                 pf.push([this.normalizedCoord(p.loc[1])]);
@@ -150,7 +150,7 @@ Chess.prototype = {
     //square features, attack and defence maps
     //used by neural network
     sfeatures: function() {
-        var sf = [];
+        let sf = [];
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
                 sf.push([this.attackValue([x, y])]);
@@ -169,12 +169,12 @@ Chess.prototype = {
                 return p.sign.toLowerCase();
             }
         }
-        var fen = '';
+        let fen = '';
         for (let y = 7; y >= 0; y--) {
-            var row = '';
-            var num = 0;
+            let row = '';
+            let num = 0;
             for (let x = 0; x < 8; x++) {
-                var p = this.board[x][y];
+                let p = this.board[x][y];
                 if (p === null) {
                     num++;
                 } else {
@@ -187,14 +187,14 @@ Chess.prototype = {
         }
         fen += this.current_move_side + ' ';
 
-        var canCastle = false;
-        var castleXLocs = [7, 0];
-        var castleYLocs = [0, 7];
-        var castleRightsStr = 'KQkq';
+        let canCastle = false;
+        let castleXLocs = [7, 0];
+        let castleYLocs = [0, 7];
+        let castleRightsStr = 'KQkq';
         for (let colorIndex = 0; colorIndex <= 1; colorIndex++) {
             for (let castleSide = 0; castleSide <= 1; castleSide++) {
-                var castleRightsInd = castleSide + colorIndex * 2;
-                var castlePiece = this.board[castleXLocs[castleSide]][castleYLocs[colorIndex]];
+                let castleRightsInd = castleSide + colorIndex * 2;
+                let castlePiece = this.board[castleXLocs[castleSide]][castleYLocs[colorIndex]];
                 if (this.fenCastleRights[castleRightsInd] &&
                     this.pieces[colorIndex][4].moves === 0 &&
                     castlePiece &&
@@ -222,7 +222,7 @@ Chess.prototype = {
         }
         for (let c = 0; c <= 1; c++) {
             for (let pw = 0, m = this.promoted_pieces[c].length; pw < m; pw++) {
-                var pawn = this.promoted_pieces[c][pw];
+                let pawn = this.promoted_pieces[c][pw];
                 this.pieces[c][8 + pawn.rank] = pawn;
             }
             for (let p = 0, n = this.pieces[c].length; p < n; p++) {
@@ -235,7 +235,7 @@ Chess.prototype = {
         this.promoted_pieces = [[], []];
         this.dead_pieces = [[], []];
 
-        var piecesKeys = {r: 'bR', R: 'wR',
+        let piecesKeys = {r: 'bR', R: 'wR',
                           n: 'bN', N: 'wN',
                           b: 'bB', B: 'wB',
                           q: 'bQ', Q: 'wQ',
@@ -244,19 +244,19 @@ Chess.prototype = {
                          };
 
         //Get fen array and arrange pieces
-        var fenArray = fen.split(' ');
+        let fenArray = fen.split(' ');
         fenArray[0] = fenArray[0].split('/');
         for (let i = 0; i < 8; i++) {
-            var y = 7 - i;
-            var x = 0;
+            let y = 7 - i;
+            let x = 0;
             for (let j = 0, m = fenArray[0][i].length; j < m; j++) {
-                var char = fenArray[0][i][j];
-                var num = parseInt(char);
+                let char = fenArray[0][i][j];
+                let num = parseInt(char);
                 if (num) {
                     x += num-1;
                 } else {
-                    var pieceVal = piecesKeys[char];
-                    var pieces = this.pieces[this.colorToIndex(pieceVal[0])];
+                    let pieceVal = piecesKeys[char];
+                    let pieces = this.pieces[this.colorToIndex(pieceVal[0])];
                     for (let p = 0, pn = pieces.length; p < pn; p++) {
                         if (pieces[p].sign === pieceVal[1] && !pieces[p].alive) {
                             pieces[p].loc = [x, y];
@@ -272,8 +272,8 @@ Chess.prototype = {
         //set move side
         this.current_move_side = fenArray[1];
         //set castling rights
-        var castleStr = fenArray[2];
-        var FCRKeys = ['K', 'Q', 'k', 'q'];
+        let castleStr = fenArray[2];
+        let FCRKeys = ['K', 'Q', 'k', 'q'];
         for (let f = 0, fn = this.fenCastleRights.length; f < fn; f++) {
             if (castleStr.indexOf(FCRKeys[f]) !== -1) {
                 this.fenCastleRights[f] = true;
@@ -285,42 +285,42 @@ Chess.prototype = {
 
     //return array of currently available moves
     availableMoves: function() {
-        var moves = [];
-        var promoChoices = 'qrbn';
-        var movingSidePieces = this.pieces[this.colorToIndex(this.current_move_side)];
+        let moves = [];
+        let promoChoices = 'qrbn';
+        let movingSidePieces = this.pieces[this.colorToIndex(this.current_move_side)];
+        let isInCheckBeforeMove = this.isInCheck(this.current_move_side);
         for (let p = 0, n = movingSidePieces.length; p < n; p++) {
-            var piece = movingSidePieces[p];
+            let piece = movingSidePieces[p];
             if (piece.alive) {
                 for (let m = 0, ml = piece.mobility.dirs.length; m < ml; m++) {
-                    var dir = piece.mobility.dirs[m], limit = piece.mobility.limit;
+                    let dir = piece.mobility.dirs[m], limit = piece.mobility.limit;
                     for (let s = 1; s <= limit; s++) {
-                        var dest = [piece.loc[0] + s * dir[0], piece.loc[1] + s * dir[1]];
-                        if (s === 1) {
-                            if (this.move(piece.loc, dest, 'q')) {
-                                this.backOneMove('d');
+                        let dest = [piece.loc[0] + s * dir[0], piece.loc[1] + s * dir[1]];
+                        let m = this.move(piece.loc, dest, 'q');
+                        if (m) {
+                            this.backOneMove('d');
+                            if (piece.sign === 'P' && this.isPromotionPath(piece.loc, dest)) {
+                                for (let i = 0; i < 4; i++) {
+                                    moves.push([[piece.loc[0], piece.loc[1]], dest, promoChoices[i]]);
+                                }
                             } else {
-                                break;
+                                moves.push([[piece.loc[0], piece.loc[1]], dest, null]);
                             }
-                        } else if (!this.isLegalMove(piece.sign, piece.loc, dest)) {
+                        } else if (m === undefined || !isInCheckBeforeMove) {
                             break;
                         }
-                        if (piece.sign === 'P' && this.isPromotionPath(piece.loc, dest)) {
-                            for (let i = 0; i < 4; i++) {
-                                moves.push([[piece.loc[0], piece.loc[1]], dest, promoChoices[i]]);
-                            }
-                        } else {
-                            moves.push([[piece.loc[0], piece.loc[1]], dest, null]);
-                        }
+
                     }
                 }
             }
         }
+        //console.log('moves: ', moves);
         return moves;
     },
 
     convPosFromStr: function(posStr) {
-        var x = posStr[0].charCodeAt() - 'a'.charCodeAt();
-        var y = parseInt(posStr[1]) - 1;
+        let x = posStr[0].charCodeAt() - 'a'.charCodeAt();
+        let y = parseInt(posStr[1]) - 1;
         return [x, y];
     },
 
@@ -330,10 +330,10 @@ Chess.prototype = {
     },
 
     getPositionObj: function() {
-        var obj = {};
+        let obj = {};
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
-                var p = this.board[x][y];
+                let p = this.board[x][y];
                 if (p) obj[this.convPosToStr([x, y])] = p.color + p.sign;
             }
         }
@@ -341,8 +341,8 @@ Chess.prototype = {
     },
 
     getinput: function(input_array) {
-        var raw_input = prompt('enter move');
-        var input = [];
+        let raw_input = prompt('enter move');
+        let input = [];
         input[0] = raw_input.slice(0, 2);
         input[1] = raw_input.slice(raw_input.length-2, raw_input.length);
         if (input[0].length < 1) return false;
@@ -377,9 +377,9 @@ Chess.prototype = {
     drawBoard: function() {
         console.log("  A B C D E F G H    ");
         for (let r = 7; r >= 0; r--) {
-            var rowStr = `${r+1}|`;
+            let rowStr = `${r+1}|`;
             for (let c = 0; c <= 7; c++) {
-                var sqr = this.board[c][r];
+                let sqr = this.board[c][r];
                 rowStr += sqr ? this.pieceDisplay(sqr.sign, sqr.color) + '|' : '_|';
             }
             console.log(rowStr);
@@ -417,7 +417,7 @@ Chess.prototype = {
     },
 
     eat: function(loc) {
-        var piece = this.board[loc[0]][loc[1]];
+        let piece = this.board[loc[0]][loc[1]];
         this.board[loc[0]][loc[1]] = null;
         piece.alive = false;
         this.dead_pieces[this.colorToIndex(piece.color)].push(piece);
@@ -429,7 +429,7 @@ Chess.prototype = {
     },
 
     promote: function(pawn, option) {
-        var promo;
+        let promo;
         if (option === null) {
             /*TODO promo = prompt("Piece to promote your pawn to? ([q]ueen/[r]ook/k[n]ight/[b]ishop)");
             while (promo !== 'q' && promo !== 'r' && promo !== 'n' && promo !== 'b') {
@@ -440,7 +440,7 @@ Chess.prototype = {
         } else {
             promo = option;
         }
-        var promote_to;
+        let promote_to;
         if (promo === 'q') {
             promote_to = new Queen();
         } else if (promo === 'r') {
@@ -455,19 +455,19 @@ Chess.prototype = {
         promote_to.moves = pawn.moves;
         this.promoted_pieces[this.colorToIndex(pawn.color)].push(pawn);
         this.board[pawn.loc[0]][pawn.loc[1]] = promote_to;
-        var i = this.colorToIndex(pawn.color);
+        let i = this.colorToIndex(pawn.color);
         this.pieces[i][this.pieces[i].indexOf(pawn)] = promote_to;
         return [promote_to, promo];
     },
 
     unpromote: function(pawn, piece) {
         this.board[pawn.loc[0]][pawn.loc[1]] = pawn;
-        var i = this.colorToIndex(piece.color);
+        let i = this.colorToIndex(piece.color);
         this.pieces[i][this.pieces[i].indexOf(piece)] = pawn;
     },
 
     castle: function(dest) {
-        var y = dest[1];
+        let y = dest[1];
         if (dest[0] === 2) {
             this.posSwitch([0, y], [3, y]);
             this.board[3][y].moves++;
@@ -478,8 +478,8 @@ Chess.prototype = {
     },
 
     uncastle: function(king_to_loc) {
-        var p_x = king_to_loc[0];
-        var p_y = king_to_loc[1];
+        let p_x = king_to_loc[0];
+        let p_y = king_to_loc[1];
         if (p_x === 2) {
             this.posSwitch([3, p_y], [0, p_y]);
             this.board[0][p_y].moves--;
@@ -490,9 +490,9 @@ Chess.prototype = {
     },
 
     isLocUnderAttack: function(loc, color) {
-        var i = this.colorToIndex(this.oppositeColor(color));
+        let i = this.colorToIndex(this.oppositeColor(color));
         for (let k = 0, n = this.pieces[i].length; k < n; k++) {
-            var p = this.pieces[i][k];
+            let p = this.pieces[i][k];
             if (p.alive && this.isLegalMove(p.sign, p.loc, loc)) return true;
         }
         return false;
@@ -513,10 +513,10 @@ Chess.prototype = {
     },
 
     move: function(curr, dest, option) {
-        var piece = this.board[curr[0]][curr[1]];
+        let piece = this.board[curr[0]][curr[1]];
         if (!piece) return false;
         if (piece.color === this.current_move_side) {
-            var m = this.isLegalMove(piece.sign, curr, dest);
+            let m = this.isLegalMove(piece.sign, curr, dest);
             if (m) {
                 this.history[this.hist_index] = [curr, dest, m, option, false];
                 if (this.pieceColorAtLoc(dest)) {
@@ -524,12 +524,12 @@ Chess.prototype = {
                     this.history[this.hist_index][4] = true;
                 }
                 if (m === 'promotion') {
-                    var promo_array = this.promote(piece, option);
+                    let promo_array = this.promote(piece, option);
                     piece = promo_array[0];
                     this.history[this.hist_index][3] = promo_array[1];
                 } else if (m === 'en_passant') {
                     this.history[this.hist_index][4] = true;
-                    var pawn_eat_y = dest[1] + (piece.color == 'w' ? -1 : 1);
+                    let pawn_eat_y = dest[1] + (piece.color == 'w' ? -1 : 1);
                     this.eat([dest[0], pawn_eat_y]);
                 } else if (m === 'castle') {
                     this.castle(dest);
@@ -544,6 +544,8 @@ Chess.prototype = {
                 }
                 //console.log(this.boardToFen());
                 return true;
+            } else {
+                return m; // Here m is either undefined for out of bounds/obstructed or false for illegal piece movement
             }
         } else {
             console.log('Please select a valid piece!');
@@ -554,21 +556,21 @@ Chess.prototype = {
     backOneMove: function() {
         this.current_move_side = this.oppositeColor(this.current_move_side);
         this.hist_index--;
-        var last_move;
+        let last_move;
         if (arguments[0] === 'd') {
             last_move = this.history.pop();
         } else {
             last_move = this.history[this.hist_index];
         }
-        var piece = this.board[last_move[1][0]][last_move[1][1]];
+        let piece = this.board[last_move[1][0]][last_move[1][1]];
         piece.moves--;
         this.posSwitch(last_move[1], last_move[0]);
         if (last_move[4]) {
-            var dead = this.dead_pieces[this.colorToIndex(this.oppositeColor(piece.color))].pop();
+            let dead = this.dead_pieces[this.colorToIndex(this.oppositeColor(piece.color))].pop();
             this.uneat(dead);
         }
         if (last_move[2] === 'promotion') {
-            var pawn = this.promoted_pieces[this.colorToIndex(piece.color)].pop();
+            let pawn = this.promoted_pieces[this.colorToIndex(piece.color)].pop();
             this.unpromote(pawn, piece);
         } else if (last_move[2] === 'castle') {
             this.uncastle(last_move[1]);
@@ -576,7 +578,7 @@ Chess.prototype = {
     },
 
     forwardOneMove: function() {
-        var next_move = this.history[this.hist_index];
+        let next_move = this.history[this.hist_index];
         if (next_move) {
             this.move(next_move[0], next_move[1], next_move[3]);
         }
@@ -588,7 +590,7 @@ Chess.prototype = {
     },
 
     isLegalMove: function(psign, curr, dest, noDestPiece) {
-        var eps = this.enpassantSqr;
+        let eps = this.enpassantSqr;
         this.enpassantSqr = null;
         if (this.isLocsInBounds(curr, dest) && this.isUnobstructedPath(curr, dest, noDestPiece)) {
             if (psign === 'K') {
@@ -614,15 +616,17 @@ Chess.prototype = {
                     return 'move';
                 }
             }
+        } else {
+            return undefined; // Out of bounds or obstructed
         }
         this.enpassantSqr = eps;
-        return false;
+        return false; // If in bounds and unobstructed, but not legal move for the piece
     },
 
     isPromotionPath: function(curr, dest) {
-        var pawn = this.board[curr[0]][curr[1]];
+        let pawn = this.board[curr[0]][curr[1]];
         if (!pawn) return false;
-        var dir = pawn.color == 'w' ? 1 : -1;
+        let dir = pawn.color == 'w' ? 1 : -1;
         if (dest[1] - curr[1] === dir && (dest[1] === 0 || dest[1] === 7)) {
             if ((dest[0] - curr[0] === 0 && this.pieceColorAtLoc(dest) === null) || (Math.abs(dest[0] - curr[0]) === 1 && this.pieceColorAtLoc(dest) === this.oppositeColor(pawn.color))) {
                 return true;
@@ -633,12 +637,12 @@ Chess.prototype = {
     },
 
     isCastlePath: function(curr, dest) {
-        var piece = this.board[curr[0]][curr[1]];
+        let piece = this.board[curr[0]][curr[1]];
         if (!piece) return false;
         if (piece.sign === 'K' && piece.moves === 0 && dest[1] === curr[1]) {
-            var colorInd = this.colorToIndex(piece.color);
-            var queen_rook = this.board[0][curr[1]]; //this.pieces[colorInd][0];
-            var king_rook = this.board[7][curr[1]]; //this.pieces[colorInd][7];
+            let colorInd = this.colorToIndex(piece.color);
+            let queen_rook = this.board[0][curr[1]]; //this.pieces[colorInd][0];
+            let king_rook = this.board[7][curr[1]]; //this.pieces[colorInd][7];
             if (dest[0] - curr[0] === -2 && this.fenCastleRights[1+2*colorInd] && queen_rook && queen_rook.moves === 0 && this.isUnobstructedPath(curr, [queen_rook.loc[0]+1, queen_rook.loc[1]])) {
                 for (let i = curr[0], n = curr[0]-2; i >= n; i--) {
                     if (this.isLocUnderAttack([i, curr[1]], piece.color)) return false;
@@ -655,13 +659,13 @@ Chess.prototype = {
     },
 
     isEnPassantPath: function(curr, dest) {
-        var piece = this.board[curr[0]][curr[1]];
+        let piece = this.board[curr[0]][curr[1]];
         if (!piece) return false;
-        var dir = piece.color === 'w' ? 1 : -1;
+        let dir = piece.color === 'w' ? 1 : -1;
         if (Math.abs(dest[0] - curr[0]) === 1 && dest[1] - curr[1] === dir) {
             if (!this.pieceColorAtLoc(dest) && this.history[this.hist_index - 1]) {
-                var last_move_from = this.history[this.hist_index - 1][0];
-                var last_move_to = this.history[this.hist_index - 1][1];
+                let last_move_from = this.history[this.hist_index - 1][0];
+                let last_move_to = this.history[this.hist_index - 1][1];
                 if (this.board[last_move_to[0]][last_move_to[1]].sign === 'P' && (last_move_to[0] - last_move_from[0]) === 0 && (last_move_to[1] - last_move_from[1]) === -2 * dir) {
                     if (dest[0] == last_move_from[0] && dest[1] == last_move_to[1] + dir) {
                         return true;
@@ -673,10 +677,10 @@ Chess.prototype = {
     },
 
     isPawnPath: function(curr, dest) {
-        var piece = this.board[curr[0]][curr[1]];
+        let piece = this.board[curr[0]][curr[1]];
         if (!piece) return false;
-        var dir = (piece.color === 'w' ? 1 : -1);
-        var startYPos = piece.color === 'w' ? 1 : 6;
+        let dir = (piece.color === 'w' ? 1 : -1);
+        let startYPos = piece.color === 'w' ? 1 : 6;
         if (dest[1] - curr[1] === dir && dest[0] - curr[0] === 0 && this.board[dest[0]][dest[1]] === null) {
             return true;
         } else if (curr[1] === startYPos && Math.abs(dest[0] - curr[0]) === 0 && Math.abs(dest[1] - curr[1]) === 2 && this.board[dest[0]][dest[1]] === null) {
@@ -720,7 +724,7 @@ Chess.prototype = {
 
     isLocsInBounds: function(locs) {
         for (let i = 0, n = arguments.length; i < n; i++) {
-            var loc = arguments[i];
+            let loc = arguments[i];
             for (let j = 0; j <= 1; j++) {
                 if (loc[j] < 0 || loc[j] > 7) return false;
             }
@@ -729,7 +733,7 @@ Chess.prototype = {
     },
 
     pieceColorAtLoc: function(loc) {
-        var piece = this.board[loc[0]][loc[1]];
+        let piece = this.board[loc[0]][loc[1]];
         if (!piece) {
             return null;
         } else {
@@ -744,7 +748,7 @@ Chess.prototype = {
         if (this.isStraightPath(curr, dest)) {
             for (let i = 0; i <= 1; i++) {
                 if (curr[i] === dest[i]) {
-                    var path = [];
+                    let path = [];
                     if (curr[1-i] < dest[1-i]) {
                         for (let p = curr[1-i]+1, n = dest[1-i]; p < n; p++) {
                             path.push(p);
@@ -767,12 +771,12 @@ Chess.prototype = {
             }
             return true;
         } else if (this.isDiagonalPath(curr, dest)) {
-            var x_change = dest[0] - curr[0];
-            var y_change = dest[1] - curr[1];
-            var x_inc = x_change / Math.abs(x_change);
-            var y_inc = y_change / Math.abs(y_change);
-            var x = curr[0] + x_inc;
-            var y = curr[1] + y_inc;
+            let x_change = dest[0] - curr[0];
+            let y_change = dest[1] - curr[1];
+            let x_inc = x_change / Math.abs(x_change);
+            let y_inc = y_change / Math.abs(y_change);
+            let x = curr[0] + x_inc;
+            let y = curr[1] + y_inc;
             while (Math.abs(x - dest[0]) > 0 && Math.abs(y - dest[1]) > 0) {
                 if (this.board[x][y]) return false;
                 x += x_inc;
