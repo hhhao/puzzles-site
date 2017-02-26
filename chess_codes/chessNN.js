@@ -109,7 +109,7 @@ ChessNN.prototype = {
 
     //back propagation
     backprop: function(error) {
-        var dout = error; //L2 loss, for L1 use error < 0 ? -1 : (error > 0 ? 1 : 0);
+        var dout = error; // For L2 loss use 'error', for L1 use 'error < 0 ? -1 : (error > 0 ? 1 : 0)';
         var dh2s = dout * this.dtanh(this.h2s[0][0]);
         var dh2w = math.multiply(dh2s, math.transpose(this.h2));
         var dh2b = [[dh2s]];
