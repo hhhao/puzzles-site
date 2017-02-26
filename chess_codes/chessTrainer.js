@@ -10,15 +10,15 @@ let fs = require('fs');
 let readline = require('readline');
 let stream = require('stream');
 
-let instream = fs.createReadStream('../../chess-position-files/unique04_shuffled.fen');
+let instream = fs.createReadStream('../../chess-position-files/unique01_shuffled.fen');
 let outstream = new stream();
 let rl = readline.createInterface(instream, outstream);
 
 const DEPTH = 2; //search depth parameter
 const LAMBDA = 0.7; //TDleaf parameter
-const SELF_PLAY_TURNS = 10; //Number of turns to play self
-const EPOCH = 10; //num of backprop iterations before write weights to file
-const NFEN_PER_ITER = 10; //num of fen to process before backprop
+const SELF_PLAY_TURNS = 20; //Number of half-turns to play self
+const EPOCH = 5; //num of backprop iterations before write weights to file
+const NFEN_PER_ITER = 5; //num of fen to process before backprop
 
 
 let iteration = 0; //denotes iteration num of current epoch
@@ -55,9 +55,12 @@ rl.on('line', function(fen) {
                 console.log(chess.boardToFen());
                 console.log("Move made: ", result[1]);
             } else {
-                score = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
-                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                console.log(score === 0 ? 'Draw, 0' : (score === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
+                console.log(actual === 0 ? 'Draw, 0' : (actual === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
+                nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
+                nn.backprop(score-actual);
+                score = actual;
                 canContinue = false;
             }
             chess.drawBoard();
@@ -73,11 +76,11 @@ rl.on('line', function(fen) {
         if (iterSubCount >= NFEN_PER_ITER) {
             chess.fenToBoard(newFen);
             nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures()); // Need to foward once for correct rate calc in backprop
-            let avgError = totalError/SELF_PLAY_TURNS/NFEN_PER_ITER;
+            let avgError = totalError/NFEN_PER_ITER;
             nn.backprop(avgError);
             iteration++;
             console.log('backprop, average error: ', avgError);
-            console.log("############################## NEW ITERATION ##############################\n")
+            console.log("############################## NEW ITERATION ##############################\n");
             totalError = 0;
             iterSubCount = 0;
         }
@@ -96,3 +99,7 @@ rl.on('line', function(fen) {
 rl.on('close', function() {
     console.log('All positions read');
 });
+
+function endPositionBackprop() {
+
+}
