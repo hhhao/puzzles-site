@@ -2,7 +2,6 @@
  Initializes neural net weight with random small values for better first time training
  DO NOT use on main weights file if trained!
  Will OVERWRITE target file weights
- Uncomment the last line to use
  */
 
 var fs = require('fs');
@@ -24,7 +23,7 @@ function randMatrix(rows, cols, option) {
             if (option === 0) {
                 m[r][c] = 0;
             } else {
-                m[r][c] = (Math.random() - 0.5) * Math.sqrt(2/(rows + cols));
+                m[r][c] = (Math.random() - 0.5) * 0.01 * Math.sqrt(2/(rows + cols));
             }
         }
     }
@@ -45,5 +44,5 @@ var dataObj = {gw: randMatrix(GHL, GFL),
                h2b: randMatrix(1, 1, 0)
               };
 
-//Uncommenting the following will destroy existing trained NN in NNWeights.json
-//fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));
+// The following will destroy existing trained NN in NNWeights.json
+fs.writeFileSync('./NNWeights.json', JSON.stringify(dataObj));

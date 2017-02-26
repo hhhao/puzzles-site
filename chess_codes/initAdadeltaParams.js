@@ -1,6 +1,5 @@
 /*
  Initializes parameters for Adadelta
- Uncomment last line to use
  */
 
 var fs = require('fs');
@@ -63,5 +62,5 @@ var dataObj = {
     h2b_ED2: zeros(1, 1)
 };
 
-//Uncomment to reset Adadelta params to 0
-//fs.writeFileSync('./adadelta_params.json', JSON.stringify(dataObj));
+// Reset Adadelta params to 0
+fs.writeFileSync('./adadelta_params.json', JSON.stringify(dataObj));
