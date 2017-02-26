@@ -10,7 +10,7 @@ let fs = require('fs');
 let readline = require('readline');
 let stream = require('stream');
 
-let instream = fs.createReadStream('../../chess-position-files/unique00.fen');
+let instream = fs.createReadStream('../../chess-position-files/unique04_shuffled.fen');
 let outstream = new stream();
 let rl = readline.createInterface(instream, outstream);
 
@@ -29,39 +29,55 @@ rl.on('line', function(fen) {
     //set board to fen
     chess.fenToBoard(fen);
     console.log("\nfen: ", fen);
+    chess.drawBoard();
 
     //increase position variability by making a random move or backprop if no moves
     let moves = chess.availableMoves();
-    if (!moves.length) {
+    if (!moves.length) { // If can't even move on initial position
         let score = nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
         let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
         nn.backprop(score-actual);
     } else {
         let m = moves[Math.floor(Math.random()*moves.length)];
         chess.move(m[0], m[1], m[2]);
+        let newFen = chess.boardToFen();
+        console.log("New fen: ", newFen);
+        chess.drawBoard();
 
         //TDleaf the fen postion for number of moves, sum error
-        let error = 0;
-        let prevScore;
-        for (let i = 0; i < SELF_PLAY_TURNS; i++) {
+        let error = 0, prevScore;
+        for (let i = 0, canContinue = true; i < SELF_PLAY_TURNS && canContinue; i++) {
+            console.log('--------------------------------------------------------');
             let result = minimax(nn, chess.boardToFen(), DEPTH);
-            console.log("result: ", result[0]);
-            if (endPositionBackprop(result)) break; // Game ended before self play end
             let score = result[0];
-            chess.move(result[1][0], result[1][1], result[1][2]);
+            if (result[1]) {
+                chess.move(result[1][0], result[1][1], result[1][2]);
+                console.log(chess.boardToFen());
+                console.log("Move made: ", result[1]);
+            } else {
+                score = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
+                console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                console.log(score === 0 ? 'Draw, 0' : (score === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
+                canContinue = false;
+            }
+            chess.drawBoard();
             error += Math.pow(LAMBDA, i) * (prevScore === undefined ? 0 : prevScore - score);
+            console.log('result ' + (i+1) + ', error sum: ', score, error);
             prevScore = score;
         }
 
         totalError += error;
-        console.log("error: ", totalError);
+        console.log("Current iteration total error: ", totalError);
+        console.log("************************************************\n************************************************");
 
         if (iterSubCount >= NFEN_PER_ITER) {
-            chess.fenToBoard(fen);
-            nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
-            nn.backprop(totalError/SELF_PLAY_TURNS);
+            chess.fenToBoard(newFen);
+            nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures()); // Need to foward once for correct rate calc in backprop
+            let avgError = totalError/SELF_PLAY_TURNS/NFEN_PER_ITER;
+            nn.backprop(avgError);
             iteration++;
-            console.log('backprop');
+            console.log('backprop, average error: ', avgError);
+            console.log("############################## NEW ITERATION ##############################\n")
             totalError = 0;
             iterSubCount = 0;
         }
@@ -80,17 +96,3 @@ rl.on('line', function(fen) {
 rl.on('close', function() {
     console.log('All positions read');
 });
-
-function endPositionBackprop(result) {
-    if (!result[1]) { //fen was stalemate or checkmate (score 0 or -1 or 1), good opportunity to backprop
-        let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
-        nn.backprop(result[0]-actual);
-
-        // Print some information:
-        console.log(actual === 0 ? 'Draw, 0' : (actual === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
-        chess.drawBoard();
-
-        return true;
-    }
-    return false;
-}
