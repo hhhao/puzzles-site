@@ -40,7 +40,8 @@ Chess.prototype = {
     gfeatures: function() {
         let gf = [];
         let ind = 0;
-        gf[ind++] = [this.current_move_side === 'w' ? 1 : -1];
+        //gf[ind++] = [this.current_move_side === 'w' ? 1 : -1]; // Mute side to play info, can switch on later
+        gf[ind++] = [0]; // muted
         for (let i = 0, n = this.fenCastleRights.length; i < n; i++) {
             gf[ind++] = [this.fenCastleRights[i] ? 1 : -1];
         }
