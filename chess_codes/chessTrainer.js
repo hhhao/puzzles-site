@@ -10,15 +10,19 @@ let fs = require('fs');
 let readline = require('readline');
 let stream = require('stream');
 
-let instream = fs.createReadStream('../../chess-position-files/unique01_shuffled.fen');
+const POSITIONS_FILE = '../../chess-position-files/unique01_shuffled.fen';
+//const POSITIONS_FILE = '../../chess-position-files/endPositions';
+const ENDPOSITION_SAVETO = '../../chess-position-files/endPositions';
+
+let instream = fs.createReadStream(POSITIONS_FILE);
 let outstream = new stream();
 let rl = readline.createInterface(instream, outstream);
 
-const DEPTH = 2; //search depth parameter
+const DEPTH = 1; //search depth parameter
 const LAMBDA = 0.7; //TDleaf parameter
-const SELF_PLAY_TURNS = 20; //Number of half-turns to play self
+const SELF_PLAY_TURNS = 50; //Number of half-turns to play self
 const EPOCH = 5; //num of backprop iterations before write weights to file
-const NFEN_PER_ITER = 5; //num of fen to process before backprop
+const NFEN_PER_ITER = 1; //num of fen to process before backprop
 
 
 let iteration = 0; //denotes iteration num of current epoch
@@ -30,7 +34,6 @@ rl.on('line', function(fen) {
     chess.fenToBoard(fen);
     console.log("\nfen: ", fen);
     chess.drawBoard();
-
     //increase position variability by making a random move or backprop if no moves
     let moves = chess.availableMoves();
     if (!moves.length) { // If can't even move on initial position
@@ -50,12 +53,14 @@ rl.on('line', function(fen) {
             console.log('--------------------------------------------------------');
             let result = minimax(nn, chess.boardToFen(), DEPTH);
             let score = result[0];
+            let currentFen = chess.boardToFen();
             if (result[1]) {
                 chess.move(result[1][0], result[1][1], result[1][2]);
-                console.log(chess.boardToFen());
+                console.log(currentFen);
                 console.log("Move made: ", result[1]);
             } else {
                 console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                fs.appendFileSync(ENDPOSITION_SAVETO, currentFen + "\n"); // Save the end position for future training
                 let actual = chess.isCheckmate() ? (chess.current_move_side === 'w' ? -1 : 1) : 0;
                 console.log(actual === 0 ? 'Draw, 0' : (actual === -1 ? 'Checkmate on white, -1' : 'Checkmate on black, 1'));
                 nn.forward(chess.gfeatures(), chess.pfeatures(), chess.sfeatures());
@@ -99,7 +104,3 @@ rl.on('line', function(fen) {
 rl.on('close', function() {
     console.log('All positions read');
 });
-
-function endPositionBackprop() {
-
-}
