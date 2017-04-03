@@ -1,8 +1,10 @@
-# Twisted Neurons
+# Twisted Neurons (v0.3a)
 
 ### Web app showcasing boardgames with AI that's build with machine learning techniques such as artificial neural network
 
 ## Usage/Setup
+
+Note: The chess AI is still under active developement and is not very good right now.
 
 View the deployed app [here](https://twisted-neurons-heroku.herokuapp.com).
 
@@ -33,6 +35,8 @@ The chess program is built from scratch in Javascript. It has 4 main components:
 ## Limitations and Areas to Improve
 
 Currently the minimax search is quite slow even with alpha-beta pruning implemented. Thus the program is only able to look ahead 2 to 3 moves within 'reasonable' waiting time.
+
+Training completely using reinforcement learning does not give very good results. A better idea is to use supervised learning initially to give reinforcement learning a better starting point. For supervised learning I would feed it large amounts of chess games.
 
 ## References and Resources
 
